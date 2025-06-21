@@ -5,7 +5,8 @@ FILES := --file docker-compose.yml
 FLAGS := ${ENV} ${FILES}
 IMAGES := $(shell ${DOCKER} ${FLAGS} images -q)
 
-INIT_DIR_CMD := $(shell [ -d ./docker/volumes ] || mkdir -p ./docker/volumes)
+VOLUME_DIR := ./docker/volumes
+INIT_DIR_CMD := $(shell [ -d ${VOLUME_DIR} ] || mkdir -p ./docker/volumes)
 
 init-dir: 
 	${INIT_DIR_CMD}
@@ -23,11 +24,13 @@ docker-rmi:
 	-${DOCKER} ${FLAGS} down -v
 	-docker rmi -f ${IMAGES}
 
+docker-rm-pgdata:
+	sudo rm -rf ${VOLUME_DIR}
+
 docker-stop:
 	-docker stop $(shell docker ps -a -q)
 	-docker rm $(shell docker ps -a -q)
 docker-clear:
-	-docker stop $(shell docker ps -a -q)
-	-docker rm $(shell docker ps -a -q)
+	make docker-stop
 	-docker rmi -f $(shell docker images -aq)
 	-docker volume rm $(shell docker volume ls -q)

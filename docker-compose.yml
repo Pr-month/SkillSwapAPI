@@ -21,7 +21,6 @@ volumes:
       device: ./frontend
 
 services:
-
   frontend:
     build:
       context: ./frontend
@@ -81,6 +80,7 @@ services:
       - skill_swap
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./databasetest/dataSkillSwap.sql:/docker-entrypoint-initdb.d/dump.sql
 
 networks:
   skill_swap:
