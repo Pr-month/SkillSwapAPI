@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from 'src/requests/entities/request.entity';
 import { Skill } from 'src/skills/entities/skill.entity';
@@ -84,8 +84,33 @@ export class RequestsService {
     return `This action returns all requests`;
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} request`;
+  async findOne(userid: string, id: string, role: string) {
+    const request = await this.requestRepository.findOneOrFail({
+      where: { id },
+      relations: ['sender', 'receiver'],
+    });
+
+    if (
+      request.sender.id !== userid &&
+      request.receiver.id !== userid &&
+      role !== 'admin'
+    ) {
+      throw new ForbiddenException('Доступ запрещён');
+    }
+
+    const { sender, receiver, ...restRequest } = request;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const cleanSender = (({ password, refreshToken, ...rest }) => rest)(sender);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const cleanReceiver = (({ password, refreshToken, ...rest }) => rest)(
+      receiver,
+    );
+
+    return {
+      ...restRequest,
+      sender: cleanSender,
+      receiver: cleanReceiver,
+    };
   }
 
   async update(id: string, dto: UpdateRequestDto) {
