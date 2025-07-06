@@ -6,7 +6,6 @@ import {
   PayloadTooLargeException,
   HttpException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { QueryFailedError } from 'typeorm';
 import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
 
@@ -17,11 +16,13 @@ describe('AllExceptionFilter', () => {
     json: jest.Mock;
   };
   let mockHost: ArgumentsHost;
-  let configService: Partial<ConfigService>;
+  let configService: { upload: { fileSizeMax: number; dir: string } };
 
   beforeEach(() => {
-    configService = { get: jest.fn().mockReturnValue('2') };
-    filter = new AllExceptionFilter(configService as ConfigService);
+    configService = {
+      upload: { fileSizeMax: 2, dir: '' },
+    };
+    filter = new AllExceptionFilter(configService);
     mockResponse = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),

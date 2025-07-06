@@ -1,7 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
 import { AccessTokenGuard } from './accessToken.guard';
-import { ConfigService } from '@nestjs/config';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { IConfig } from '../../config/configuration';
 
 type MockAuthRequest = {
   headers: { authorization?: string };
@@ -11,7 +11,7 @@ type MockAuthRequest = {
 describe('AccessTokenGuard', () => {
   let guard: AccessTokenGuard;
   let jwtService: { verify: jest.Mock };
-  let configService: { get: jest.Mock };
+  let config: { jwt: { accessTokenSecret: string } };
 
   const mockRequest = (authorization?: string): MockAuthRequest => ({
     headers: { authorization },
@@ -31,13 +31,13 @@ describe('AccessTokenGuard', () => {
       verify: jest.fn(),
     };
 
-    configService = {
-      get: jest.fn().mockReturnValue('test_secret'),
+    config = {
+      jwt: { accessTokenSecret: 'test_secret' },
     };
 
     guard = new AccessTokenGuard(
       jwtService as unknown as JwtService,
-      configService as unknown as ConfigService,
+      config as unknown as IConfig,
     );
   });
 
