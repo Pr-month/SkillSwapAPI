@@ -30,9 +30,10 @@ export class RequestsController {
     return this.requestsService.findAll();
   }
 
+  @UseGuards(AccessTokenGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.requestsService.findOne(id);
+  findOne(@Req() req: AuthRequest, @Param('id') id: string) {
+    return this.requestsService.findOne(req.user.sub, id, req.user.role);
   }
 
   @UseGuards(AccessTokenGuard)
