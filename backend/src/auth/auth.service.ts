@@ -1,12 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.auth.dto';
 import { UsersService } from '../users/users.service';
 import { UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.auth.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { configuration, IConfig } from '../config/configuration';
 
 @Injectable()
 export class AuthService {
@@ -15,9 +15,10 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private readonly configService: ConfigService,
+    @Inject(configuration.KEY)
+    private readonly config: IConfig,
   ) {
-    this.saltRounds = this.configService.get<number>('salt') as number;
+    this.saltRounds = this.config.salt;
   }
 
   async register(registerDto: RegisterDto) {
@@ -103,8 +104,8 @@ export class AuthService {
     const accessToken = await this.jwtService.signAsync(payload);
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.get<string>('jwt.refreshTokenSecret'),
-      expiresIn: this.configService.get<string>('jwt.refreshTokenExpiresIn'),
+      secret: this.config.jwt.refreshTokenSecret,
+      expiresIn: this.config.jwt.refreshTokenExpiresIn,
     });
 
     return {

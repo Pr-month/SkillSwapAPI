@@ -1,7 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenGuard } from './refreshToken.guard';
-import { ConfigService } from '@nestjs/config';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { IConfig } from '../../config/configuration';
 
 type MockAuthRequest = {
   headers: { authorization?: string };
@@ -11,7 +11,7 @@ type MockAuthRequest = {
 describe('RefreshTokenGuard', () => {
   let guard: RefreshTokenGuard;
   let jwtService: { verify: jest.Mock };
-  let configService: { get: jest.Mock };
+  let config: { jwt: { refreshTokenSecret: string } };
 
   const mockRequest = (authorization?: string): MockAuthRequest => ({
     headers: { authorization },
@@ -31,13 +31,15 @@ describe('RefreshTokenGuard', () => {
       verify: jest.fn(),
     };
 
-    configService = {
-      get: jest.fn().mockReturnValue('test_refresh_secret'),
+    config = {
+      jwt: {
+        refreshTokenSecret: 'test_refresh_secret',
+      },
     };
 
     guard = new RefreshTokenGuard(
       jwtService as unknown as JwtService,
-      configService as unknown as ConfigService,
+      config as unknown as IConfig,
     );
   });
 
@@ -61,7 +63,6 @@ describe('RefreshTokenGuard', () => {
       expect(jwtService.verify).toHaveBeenCalledWith(validToken, {
         secret: 'test_refresh_secret',
       });
-      expect(configService.get).toHaveBeenCalledWith('jwt.refreshTokenSecret');
     });
   });
 
