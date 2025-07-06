@@ -32,12 +32,19 @@ export class CategoriesService {
     return `This action returns a #${id} category`;
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category: ${updateCategoryDto?.name}`;
+  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
+    const category = await this.categoryRepository.findOneOrFail({
+      where: { id: id },
+      relations: ['parent', 'children'],
+    });
+
+    Object.assign(category, updateCategoryDto);
+
+    return this.categoryRepository.save(category);
   }
 
   async remove(id: string) {
     await this.categoryRepository.delete(id);
-    return `This action removes a #${id} category`;
+    return { message: `Категория с id ${id} удалена` };
   }
 }

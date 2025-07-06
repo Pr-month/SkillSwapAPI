@@ -1,16 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { SocketWithUser } from './types';
-import { ConfigService } from '@nestjs/config';
 import { WsException } from '@nestjs/websockets';
 import { logger } from 'src/logger/mainLogger';
 import { JwtPayload } from 'src/auth/types';
+import { configuration, IConfig } from '../../config/configuration';
 
 @Injectable()
 export class JwtWsGuard {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    @Inject(configuration.KEY)
+    private readonly config: Pick<IConfig, 'jwt'>,
   ) {}
 
   verifyToken(client: SocketWithUser) {
@@ -28,7 +29,7 @@ export class JwtWsGuard {
 
     try {
       const payload = this.jwtService.verify<JwtPayload>(accessToken, {
-        secret: this.configService.get<string>('jwt.accessTokenSecret'),
+        secret: this.config.jwt.accessTokenSecret,
       });
       client.data.user = payload;
 

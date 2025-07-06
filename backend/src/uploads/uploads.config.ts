@@ -1,9 +1,9 @@
-import { ConfigService } from '@nestjs/config';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { diskStorage } from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { extname } from 'path';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { IConfig } from '../config/configuration';
 
 export const acceptedImageTypes = [
   'image/png',
@@ -12,17 +12,17 @@ export const acceptedImageTypes = [
   'image/gif',
 ];
 
-export function createMulterConfig(config: ConfigService): MulterOptions {
+export function createMulterConfig(config: IConfig): MulterOptions {
   return {
     storage: diskStorage({
-      destination: config.get<string>('upload.dir', './public/uploads'),
+      destination: config.upload.dir,
       filename: (_req, file, cb) => {
         const uniqueName = uuidv4() + extname(file.originalname);
         cb(null, uniqueName);
       },
     }),
     limits: {
-      fileSize: config.get<number>('upload.fileSizeMax', 2 * 1024 * 1024),
+      fileSize: config.upload.fileSizeMax,
     },
     fileFilter: (_req, file, cb) => {
       if (!acceptedImageTypes.includes(file.mimetype)) {
