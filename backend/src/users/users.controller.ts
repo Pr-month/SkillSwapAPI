@@ -15,6 +15,7 @@ import { UsersService } from './users.service';
 import { AuthRequest } from '../auth/types';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -76,16 +77,30 @@ export class UsersController {
     return this.usersService.updateUser(req.user.sub, updateUserDto);
   }
 
-  @ApiBearerAuth('refresh-token')
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Patch('me/password')
   @ApiOperation({
     summary: 'Обновление пароля текущего пользователя',
     description: 'ТОКЕН БЕРЁМ ИЗ ОТВЕТА ПРИ РЕГИСТРАЦИИ',
   })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        password: {
+          type: 'string',
+          example: 'newPassword',
+          description: 'Новый пароль пользователя',
+        },
+      },
+      required: ['password'],
+    },
+  })
   @ApiResponse({
     status: 200,
     description: 'Данные текущего пользователя',
+    type: User,
   })
   updatePassword(@Req() req: AuthRequest, @Body('password') password: string) {
     return this.usersService.updatePassword(req.user.sub, password);
