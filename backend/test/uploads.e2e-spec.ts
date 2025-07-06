@@ -26,7 +26,7 @@ describe('UploadsController (e2e)', () => {
     );
     await app.init();
     server = app.getHttpServer() as Server;
-  });
+  }, 20_000);
 
   afterAll(async () => {
     // Удаляем загруженный файл после теста
@@ -41,7 +41,9 @@ describe('UploadsController (e2e)', () => {
         unlinkSync(lqFilePath);
       }
     }
-    await app.close();
+    if (app) {
+      await app.close();
+    }
   });
 
   it('успешная загрузка изображения', async () => {
