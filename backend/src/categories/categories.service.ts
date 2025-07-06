@@ -38,6 +38,6 @@ export class CategoriesService {
 
   async remove(id: string) {
     await this.categoryRepository.delete(id);
-    return `This action removes a #${id} category`;
+    return { message: `Категория с id ${id} удалена` };
   }
 }
