@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from 'src/requests/entities/request.entity';
 import { Skill } from 'src/skills/entities/skill.entity';
@@ -22,15 +28,18 @@ export class RequestsService {
   async create(senderID: string, createRequestDto: CreateRequestDto) {
     const { offeredSkillId, requestedSkillId } = createRequestDto;
 
-    const offeredSkill = await this.skillRepository.findOneBy({
-      id: offeredSkillId,
+    const offeredSkill = await this.skillRepository.findOne({
+      where: { id: offeredSkillId },
+      relations: ['owner'],
     });
-    const requestedSkill = await this.skillRepository.findOneBy({
-      id: requestedSkillId,
+
+    const requestedSkill = await this.skillRepository.findOne({
+      where: { id: requestedSkillId },
+      relations: ['owner'],
     });
 
     if (offeredSkill == null || requestedSkill == null)
-      throw new BadRequestException(
+      throw new NotFoundException(
         `Предлагаемый / запрашиваемый навык не существует`,
       );
 
@@ -38,18 +47,24 @@ export class RequestsService {
     const receiverId = requestedSkill.owner.id;
 
     if (senderID !== senderId)
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `Заявка сгенерирована не от имени авторизированного пользователя`,
       );
-    const sender = await this.userRepository.findOneBy({ id: senderId });
-    const receiver = await this.userRepository.findOneBy({ id: receiverId });
+    const sender = await this.userRepository.findOne({
+      where: { id: senderId },
+      relations: ['skills'],
+    });
+    const receiver = await this.userRepository.findOne({
+      where: { id: receiverId },
+      relations: ['skills'],
+    });
     if (sender == null)
-      throw new BadRequestException(
+      throw new NotFoundException(
         `Заявка сгенерирована  несуществующим пользователем`,
       );
 
     if (receiver == null)
-      throw new BadRequestException(
+      throw new NotFoundException(
         `Заявка адресована  несуществующему пользователю`,
       );
 
@@ -58,7 +73,7 @@ export class RequestsService {
     );
 
     if (!senderHasOfferedSkill) {
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `Авторизированный пользователь не обладает предлагаемым навыком.`,
       );
     }
@@ -68,8 +83,22 @@ export class RequestsService {
     );
 
     if (!receiverHasRequestedSkill) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `Получатель не обладает запрашиваемым навыком.`,
+      );
+    }
+
+    const existingRequest = await this.requestRepository.findOne({
+      where: {
+        sender: { id: sender.id },
+        offeredSkill: { id: offeredSkill.id },
+        requestedSkill: { id: requestedSkill.id },
+      },
+    });
+
+    if (existingRequest) {
+      throw new BadRequestException(
+        `Такая заявка уже существует. Пользователь уже отправил запрос на обмен "${offeredSkill.title}" на "${requestedSkill.title}".`,
       );
     }
 
