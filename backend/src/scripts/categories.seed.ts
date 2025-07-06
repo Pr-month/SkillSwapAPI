@@ -8,7 +8,7 @@ const usersSeed = new SeedSimple(
     success: 'Данные о категориях загружены',
   },
   {
-    clearBefore: true,
+    clearBefore: false,
   },
 );
 
