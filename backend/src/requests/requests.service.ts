@@ -84,13 +84,16 @@ export class RequestsService {
     return await this.requestRepository.save(newRequest);
   }
 
-  async findAll(query: {
-    type?: RequestType;
-    status?: RequestStatus;
-    isRead?: boolean;
-    page?: string;
-    limit?: string;
-  }) {
+  async findAll(
+    senderID: string,
+    query: {
+      type?: RequestType;
+      status?: RequestStatus;
+      isRead?: boolean;
+      page?: string;
+      limit?: string;
+    },
+  ) {
     const page = Math.max(parseInt(query.page ?? '1'), 1);
     const limit = Math.min(Math.max(parseInt(query.limit ?? '20'), 1), 100);
 
@@ -103,7 +106,18 @@ export class RequestsService {
       .orderBy('request.createdAt', 'DESC');
 
     if (query.type) {
-      qb.andWhere('request.type = :type', { type: query.type });
+      if (query.type === RequestType.INCOMING) {
+        qb.andWhere('receiver.id = :currentUserId', {
+          currentUserId: senderID,
+        });
+      } else if (query.type === RequestType.OUTGOING) {
+        qb.andWhere('sender.id = :currentUserId', { currentUserId: senderID });
+      }
+    } else {
+      qb.andWhere(
+        '(sender.id = :currentUserId OR receiver.id = :currentUserId)',
+        { currentUserId: senderID },
+      );
     }
 
     if (query.status) {

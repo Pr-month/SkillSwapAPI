@@ -15,8 +15,9 @@ import { CreateRequestDto } from './dto/create-request.dto';
 import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
 import { AuthRequest } from 'src/auth/types';
 import { UpdateRequestDto } from './dto/update-request.dto';
-import { FindSkillsQueryDto } from 'src/skills/dto/find-skill.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { FindRequestQueryDto } from './dto/find-request.dto';
+import { FindAllRequestsResponseDto } from './dto/find-all-requests-response.dto';
 
 @Controller('requests')
 export class RequestsController {
@@ -28,16 +29,16 @@ export class RequestsController {
     return this.requestsService.create(req.user.sub, createRequestDto);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Get()
   @ApiOperation({ summary: 'Получение всех  запросов' })
   @ApiResponse({
     status: 200,
     description: 'Список всех запросов',
-    type: Request,
-    isArray: true,
+    type: FindAllRequestsResponseDto,
   })
-  findAll(@Query() query: FindSkillsQueryDto) {
-    return this.requestsService.findAll(query);
+  findAll(@Req() req: AuthRequest, @Query() query: FindRequestQueryDto) {
+    return this.requestsService.findAll(req.user.sub, query);
   }
 
   @Get(':id')
