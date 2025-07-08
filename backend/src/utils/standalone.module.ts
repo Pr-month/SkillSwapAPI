@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import AppDataSource from '../config/ormconfig-migration';
-import { configuration } from '../config/configuration';
+import { configuration, IConfig } from '../config/configuration';
 
 @Module({
   imports: [
@@ -21,15 +21,13 @@ import { configuration } from '../config/configuration';
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
+      inject: [configuration.KEY],
       global: true,
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (config: IConfig) => ({
         global: true,
-        secret: configService.get<string>('jwt.accessTokenSecret'),
+        secret: config.jwt.accessTokenSecret,
         signOptions: {
-          expiresIn: configService.get<string>(
-            'jwt.accessTokenSecretExpiresIn',
-          ),
+          expiresIn: config.jwt.accessTokenSecretExpiresIn,
         },
       }),
     }),

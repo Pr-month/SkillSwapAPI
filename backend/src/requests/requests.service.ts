@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +14,9 @@ import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { RequestAction, RequestStatus, RequestType } from './enums';
 import { FindRequestQueryDto } from './dto/find-request.dto';
+import { JwtPayload } from '../auth/types';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { NotificationType } from '../notifications/ws-jwt/types';
 
 @Injectable()
 export class RequestsService {
@@ -19,20 +24,24 @@ export class RequestsService {
     @InjectRepository(Request) private requestRepository: Repository<Request>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Skill) private skillRepository: Repository<Skill>,
+    private notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(senderID: string, createRequestDto: CreateRequestDto) {
     const { offeredSkillId, requestedSkillId } = createRequestDto;
 
-    const offeredSkill = await this.skillRepository.findOneBy({
-      id: offeredSkillId,
+    const offeredSkill = await this.skillRepository.findOne({
+      where: { id: offeredSkillId },
+      relations: ['owner'],
     });
-    const requestedSkill = await this.skillRepository.findOneBy({
-      id: requestedSkillId,
+
+    const requestedSkill = await this.skillRepository.findOne({
+      where: { id: requestedSkillId },
+      relations: ['owner'],
     });
 
     if (offeredSkill == null || requestedSkill == null)
-      throw new BadRequestException(
+      throw new NotFoundException(
         `Предлагаемый / запрашиваемый навык не существует`,
       );
 
@@ -40,18 +49,24 @@ export class RequestsService {
     const receiverId = requestedSkill.owner.id;
 
     if (senderID !== senderId)
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `Заявка сгенерирована не от имени авторизированного пользователя`,
       );
-    const sender = await this.userRepository.findOneBy({ id: senderId });
-    const receiver = await this.userRepository.findOneBy({ id: receiverId });
+    const sender = await this.userRepository.findOne({
+      where: { id: senderId },
+      relations: ['skills'],
+    });
+    const receiver = await this.userRepository.findOne({
+      where: { id: receiverId },
+      relations: ['skills'],
+    });
     if (sender == null)
-      throw new BadRequestException(
+      throw new NotFoundException(
         `Заявка сгенерирована  несуществующим пользователем`,
       );
 
     if (receiver == null)
-      throw new BadRequestException(
+      throw new NotFoundException(
         `Заявка адресована  несуществующему пользователю`,
       );
 
@@ -60,7 +75,7 @@ export class RequestsService {
     );
 
     if (!senderHasOfferedSkill) {
-      throw new BadRequestException(
+      throw new ForbiddenException(
         `Авторизированный пользователь не обладает предлагаемым навыком.`,
       );
     }
@@ -70,8 +85,22 @@ export class RequestsService {
     );
 
     if (!receiverHasRequestedSkill) {
-      throw new BadRequestException(
+      throw new ConflictException(
         `Получатель не обладает запрашиваемым навыком.`,
+      );
+    }
+
+    const existingRequest = await this.requestRepository.findOne({
+      where: {
+        sender: { id: sender.id },
+        offeredSkill: { id: offeredSkill.id },
+        requestedSkill: { id: requestedSkill.id },
+      },
+    });
+
+    if (existingRequest) {
+      throw new BadRequestException(
+        `Такая заявка уже существует. Пользователь уже отправил запрос на обмен "${offeredSkill.title}" на "${requestedSkill.title}".`,
       );
     }
 
@@ -82,7 +111,13 @@ export class RequestsService {
     newRequest.offeredSkill = offeredSkill;
     newRequest.requestedSkill = requestedSkill;
 
-    return await this.requestRepository.save(newRequest);
+    const createdRequest = await this.requestRepository.save(newRequest);
+    this.notificationsGateway.notifyUser(createdRequest.receiver.id!, {
+      type: NotificationType.NEW_REQUEST,
+      skillName: createdRequest.requestedSkill.title,
+      sender: createdRequest.sender.name,
+    });
+    return createdRequest;
   }
 
   async findAll(senderID: string, query: FindRequestQueryDto) {
@@ -140,8 +175,33 @@ export class RequestsService {
     };
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} request`;
+  async findOne(userid: string, id: string, role: string) {
+    const request = await this.requestRepository.findOneOrFail({
+      where: { id },
+      relations: ['sender', 'receiver'],
+    });
+
+    if (
+      request.sender.id !== userid &&
+      request.receiver.id !== userid &&
+      role !== 'admin'
+    ) {
+      throw new ForbiddenException('Доступ запрещён');
+    }
+
+    const { sender, receiver, ...restRequest } = request;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const cleanSender = (({ password, refreshToken, ...rest }) => rest)(sender);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const cleanReceiver = (({ password, refreshToken, ...rest }) => rest)(
+      receiver,
+    );
+
+    return {
+      ...restRequest,
+      sender: cleanSender,
+      receiver: cleanReceiver,
+    };
   }
 
   async update(id: string, dto: UpdateRequestDto) {
@@ -192,10 +252,37 @@ export class RequestsService {
         throw new BadRequestException('Неверное действие');
     }
 
-    return await this.requestRepository.save(request);
+    const updatedRequest = await this.requestRepository.save(request);
+
+    const requestToNotificationMap = {
+      [RequestAction.READ]: undefined,
+      [RequestAction.ACCEPT]: NotificationType.ACCEPTED_REQUEST,
+      [RequestAction.REJECT]: NotificationType.DECLINED_REQUEST,
+    };
+
+    const notificationType = requestToNotificationMap[action];
+    if (notificationType) {
+      this.notificationsGateway.notifyUser(updatedRequest.receiver.id!, {
+        type: notificationType,
+        skillName: updatedRequest.requestedSkill.title,
+        sender: updatedRequest.sender.name,
+      });
+    }
+    return updatedRequest;
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} request`;
+  async remove(id: string, user: JwtPayload) {
+    const request = await this.requestRepository.findOneOrFail({
+      where: { id },
+      relations: ['sender'], //sender(пользователь создавший заявку),
+    });
+
+    if (user.role === 'user' && user.sub !== request.sender.id) {
+      throw new ForbiddenException(
+        `Пользователь не может удалить заявку, созданную другим пользователем`,
+      );
+    }
+    await this.requestRepository.delete(id);
+    return { message: `Заявка с id: ${id} успешно удалена` };
   }
 }

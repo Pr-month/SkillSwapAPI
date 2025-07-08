@@ -9,7 +9,6 @@ import {
 import { Skill } from '../../skills/entities/skill.entity';
 import { Gender, UserRole } from '../enums';
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude } from 'class-transformer';
 
 //Данные пользователя для базы
 @Entity()
