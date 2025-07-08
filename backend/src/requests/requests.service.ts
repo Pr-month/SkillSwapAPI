@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { RequestAction, RequestStatus, RequestType } from './enums';
+import { FindRequestQueryDto } from './dto/find-request.dto';
 
 @Injectable()
 export class RequestsService {
@@ -84,16 +85,7 @@ export class RequestsService {
     return await this.requestRepository.save(newRequest);
   }
 
-  async findAll(
-    senderID: string,
-    query: {
-      type?: RequestType;
-      status?: RequestStatus;
-      isRead?: boolean;
-      page?: string;
-      limit?: string;
-    },
-  ) {
+  async findAll(senderID: string, query: FindRequestQueryDto) {
     const page = Math.max(parseInt(query.page ?? '1'), 1);
     const limit = Math.min(Math.max(parseInt(query.limit ?? '20'), 1), 100);
 
