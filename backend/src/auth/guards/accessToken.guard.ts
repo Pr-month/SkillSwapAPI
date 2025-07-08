@@ -3,16 +3,18 @@ import {
   CanActivate,
   ExecutionContext,
   UnauthorizedException,
+  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { JwtPayload, AuthRequest } from '../types';
+import { configuration, IConfig } from '../../config/configuration';
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
-    private readonly configService: ConfigService,
+    @Inject(configuration.KEY)
+    private readonly config: Pick<IConfig, 'jwt'>,
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
@@ -26,7 +28,7 @@ export class AccessTokenGuard implements CanActivate {
     const token = accessToken.split(' ')[1];
     try {
       const payload = this.jwtService.verify<JwtPayload>(token, {
-        secret: this.configService.get<string>('jwt.accessTokenSecret'),
+        secret: this.config.jwt.accessTokenSecret,
       });
       request.user = payload;
     } catch {

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { configuration } from './config/configuration';
+import { ConfigModule } from '@nestjs/config';
+import { configuration, IConfig } from './config/configuration';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -25,15 +25,13 @@ import { NotificationsModule } from './notifications/notifications.module';
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
+      inject: [configuration.KEY],
       global: true,
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (config: IConfig) => ({
         global: true,
-        secret: configService.get<string>('jwt.accessTokenSecret'),
+        secret: config.jwt.accessTokenSecret,
         signOptions: {
-          expiresIn: configService.get<string>(
-            'jwt.accessTokenSecretExpiresIn',
-          ),
+          expiresIn: config.jwt.accessTokenSecretExpiresIn,
         },
       }),
     }),
