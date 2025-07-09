@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { configuration, IConfig } from './config/configuration';
+import { configuration, IConfig} from './config/configuration';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppDataSource } from './config/ormconfig';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
@@ -36,7 +35,20 @@ import { NotificationsModule } from './notifications/notifications.module';
       }),
     }),
     // подключаем TypeORM с настройками из ormconfig.ts
-    TypeOrmModule.forRoot(AppDataSource.options),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [configuration.KEY],
+      useFactory: async (config: IConfig) => ({
+        type: 'postgres',
+        host: config.database.host,
+        port: config.database.port,
+        username: config.database.username,
+        password: config.database.password,
+        database: config.database.dbName,
+        synchronize: config.database.synchronize,
+        autoLoadEntities: true,
+      }),
+    }),
     UsersModule,
     AuthModule,
     SkillsModule,
