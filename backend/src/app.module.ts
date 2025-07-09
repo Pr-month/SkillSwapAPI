@@ -38,7 +38,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [configuration.KEY],
-      useFactory: async (config: IConfig) => ({
+      useFactory: (config: IConfig) => ({
         type: 'postgres',
         host: config.database.host,
         port: config.database.port,
