@@ -18,14 +18,7 @@ export const configuration = registerAs('APP_CONFIG', () => ({
     dir: process.env.UPLOAD_DIR || './public/uploads',
     fileSizeMax: Number(process.env.UPLOAD_FILE_SIZE_MAX || 2 * 1024 * 1024),
   },
-  database: {
-    host: process.env.DATABASE_HOST || 'localhost',
-    port: Number(process.env.EXTERNAL_DATABASE_PORT) || 5432,
-    username: process.env.DATABASE_USER || 'postgres',
-    password: process.env.DATABASE_PASSWORD || 'postgres',
-    dbName: process.env.DATABASE_NAME || 'skillswap',
-    synchronize: process.env.NODE_ENV !== 'production',
-  },
+  database: commonDataSource,
 }));
 
 export type IConfig = ConfigType<typeof configuration>;
