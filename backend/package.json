@@ -23,7 +23,7 @@
     "seed:users": "npm run seed -- src/scripts/users.seed.ts",
     "seed:categories": "npm run seed -- src/scripts/categories.seed.ts",
     "seeding": "npm run seed:users && npm run seed:categories",
-    "seed:test": "npm run seed -- src/scripts/test.seed.ts",
+    "seed:test": "npm run seed:categories -- src/scripts/test.seed.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
