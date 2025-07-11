@@ -12,12 +12,10 @@ import * as path from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
-import { User } from 'src/users/entities/users.entity';
 
 @Injectable()
 export class SkillsService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Skill) private skillRepository: Repository<Skill>,
   ) {}
 

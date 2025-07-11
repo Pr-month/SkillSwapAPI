@@ -11,14 +11,17 @@ import { ApiProperty } from '@nestjs/swagger';
 export class Category {
   @PrimaryGeneratedColumn('uuid')
   @ApiProperty({
-    example: '1',
+    example: '12345678-90ab-cd00-0000-f1752408d831',
     description: 'Уникальный идентификатор категории',
   })
-  id: string;
+  id?: string;
 
-  @Column({ length: 100 })
+  @Column({
+    length: 100,
+    nullable: false,
+  })
   @ApiProperty({
-    example: 'Музыкальный инструменты',
+    example: 'Музыкальные инструменты',
     description: 'Название категории',
   })
   name: string;
@@ -32,13 +35,15 @@ export class Category {
     type: () => Category,
     description: 'Родительская категория',
   })
-  parent: Category;
+  parent?: Category | null;
 
-  @OneToMany(() => Category, (category) => category.parent)
+  @OneToMany(() => Category, (category) => category.parent, {
+    cascade: ['insert'],
+  })
   @ApiProperty({
     type: () => [Category],
     description: 'Дочерние категории',
     example: [],
   })
-  children: Category[];
+  children?: Category[];
 }
