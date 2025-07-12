@@ -6,11 +6,11 @@ import { RequestStatus } from '../requests/enums';
 import { Request } from '../requests/entities/request.entity';
 import { Category } from '../categories/entities/category.entity';
 
-const userSeed = new SeedSimple(User, {
+const testSeed = new SeedSimple(User, {
   success: 'Тестовые данные загружены',
 });
 
-userSeed.run(async (repository) => {
+testSeed.run(async (repository) => {
   const users = await repository.save([
     {
       name: 'Владислав',
@@ -20,7 +20,7 @@ userSeed.run(async (repository) => {
       city: 'Владивосток',
       aboutMe: 'О себе',
       gender: Gender.MALE,
-      role: UserRole.USER,
+      role: UserRole.ADMIN,
       refreshToken:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyY2FmODhlYi00ZmM4LTQ5ZWItYmM3Zi01MjA5YzI2MjI4YWQiLCJlbWFpbCI6InZsYWRpc2xhdkBleGFtcGxlLmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzUyMTgxNzIzLCJleHAiOjE3NTI3ODY1MjN9.zrjuWpQ6IbVLE2LW35r8YbBmNqw0RfXGFkTsNNe11NQ',
     },
@@ -51,13 +51,16 @@ userSeed.run(async (repository) => {
   ]);
 
   const skillRepository = repository.manager.getRepository(Skill);
-  const categories = await repository.manager.getRepository(Category).find();
+  const categories = repository.manager.getRepository(Category);
+  const drumCategory = await categories.findOneByOrFail({ name: 'Барабан' });
+  const guitarCategory = await categories.findOneByOrFail({ name: 'Гитара' });
+  const pkCategory = await categories.findOneByOrFail({ name: 'ПК' });
 
   const skills = await skillRepository.save([
     {
       title: 'Барабаны',
       description: 'Умею играть на барабанах',
-      category: categories[2],
+      category: drumCategory,
       images: ['image1.png'],
       owner: users[0],
     },
@@ -65,14 +68,14 @@ userSeed.run(async (repository) => {
       title: 'Гитара',
       description: 'Умею играть на гитаре',
       images: ['image2.png', 'image3.png'],
-      category: categories[3],
+      category: guitarCategory,
       owner: users[1],
     },
     {
       title: 'Пасьянс',
       description: 'Умею раскладывать пасьянс',
       images: [],
-      category: categories[5],
+      category: pkCategory,
       owner: users[2],
     },
   ]);

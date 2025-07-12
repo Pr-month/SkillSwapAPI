@@ -50,7 +50,7 @@ export const commonDataSource: DataSourceOptions = {
   database: process.env.DATABASE_NAME || 'skillswap',
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV !== 'production',
-  dropSchema: process.env.NODE_ENV === 'test',
+  dropSchema: process.env.DROP_SCHEMA === 'true',
 
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],

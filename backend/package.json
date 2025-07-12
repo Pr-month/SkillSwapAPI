@@ -20,15 +20,16 @@
     "migration:revert": "npm run typeorm migration:revert -- -d src/config/ormconfig-migration.ts",
     "migration:run": "npm run typeorm migration:run -- -d src/config/ormconfig-migration.ts",
     "seed": "ts-node -r tsconfig-paths/register -r dotenv/config",
+    "seed:test:local": "dotenv -e .env.test.local -- ts-node -r tsconfig-paths/register",
     "seed:users": "npm run seed -- src/scripts/users.seed.ts",
     "seed:categories": "npm run seed -- src/scripts/categories.seed.ts",
     "seeding": "npm run seed:users && npm run seed:categories",
-    "seed:test": "npm run seed:categories && npm run seed -- src/scripts/test.seed.ts",
+    "seed:test": "npm run seed:test:local -- src/scripts/categories.seed.ts && cross-env DROP_SCHEMA=false npm run seed:test:local -- src/scripts/test.seed.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "npm run seed:test && dotenv -e .env.test.local -- jest --config ./test/jest-e2e.json --detectOpenHandles"
+    "test:e2e": "dotenv -e .env.test.local -- cross-env DROP_SCHEMA=true npm run seed:test && dotenv -e .env.test.local -- jest --config ./test/jest-e2e.json --detectOpenHandles"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -53,7 +54,6 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sharp": "^0.34.2",
-   
     "typeorm": "^0.3.24",
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
@@ -78,6 +78,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
     "@types/winston": "^2.4.4",
+    "cross-env": "^7.0.3",
     "dotenv-cli": "^8.0.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
