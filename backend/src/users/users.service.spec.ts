@@ -4,10 +4,10 @@ import { Gender, UserRole } from './enums';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from './entities/users.entity';
 import { Skill } from '../skills/entities/skill.entity';
-import { ConfigService } from '@nestjs/config';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import * as bcrypt from 'bcrypt';
 import { CreateUsersDto } from './dto/create.users.dto';
+import { configuration } from 'src/config/configuration';
 
 jest.mock('bcrypt');
 
@@ -29,7 +29,7 @@ describe('UsersService', () => {
     notifyUser: jest.Mock;
   };
   let configService: {
-    get: jest.Mock<10 | undefined, [string]>;
+    salt: number;
   };
   const users = [
     {
@@ -119,10 +119,7 @@ describe('UsersService', () => {
     (bcrypt.hash as jest.Mock).mockImplementation((data) => `hashed-${data}`);
 
     configService = {
-      get: jest.fn((key: string) => {
-        if (key === 'salt') return 10;
-        return undefined;
-      }),
+      salt: 10,
     };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -136,7 +133,7 @@ describe('UsersService', () => {
           useValue: skillRepository,
         },
         {
-          provide: ConfigService,
+          provide: configuration.KEY,
           useValue: configService,
         },
         {
@@ -239,10 +236,7 @@ describe('UsersService', () => {
   describe('updatePassword', () => {
     it('успешно обновляет пароль пользователя', async () => {
       const newPassword = 'новый_пароль';
-      const hashedPassword = bcrypt.hash(
-        newPassword,
-        configService.get('salt') as number,
-      );
+      const hashedPassword = bcrypt.hash(newPassword, configService.salt);
       const updatedUser = {
         ...users[0],
         password: hashedPassword,
@@ -261,6 +255,12 @@ describe('UsersService', () => {
       );
       await expect(service.updatePassword('3', 'новый_пароль')).rejects.toThrow(
         'Пользователь не найден',
+      );
+    });
+
+    it('выбрасывает ошибку, если новый пароль пустой', async () => {
+      await expect(service.updatePassword('1', '')).rejects.toThrow(
+        'Пароль не может быть пустым',
       );
     });
   });

@@ -1,10 +1,12 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { Server } from 'http';
-import { FindUserDTO } from 'src/users/dto/find.users.dto';
-import { AuthResponseDto } from 'src/auth/dto/AuthResponse.dto';
+import { FindUserDTO } from '../src/users/dto/find.users.dto';
+import { AuthResponseDto } from '../src/auth/dto/AuthResponse.dto';
+import { AllExceptionFilter } from '../src/common/all-exception.filter';
+import { ConfigService } from '@nestjs/config';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
@@ -18,6 +20,10 @@ describe('UsersController (e2e)', () => {
     }).compile();
 
     app = module.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+    );
+    app.useGlobalFilters(new AllExceptionFilter(app.get(ConfigService)));
     await app.init();
     server = app.getHttpServer() as Server;
     //получаем данные админа
@@ -77,6 +83,30 @@ describe('UsersController (e2e)', () => {
     expect(user.name).toBe('newName');
   });
 
+  it('/PATCH users/me - пустой email (400)', async () => {
+    await request(server)
+      .patch('/users/me')
+      .auth(accessToken, { type: 'bearer' })
+      .send({ email: '' })
+      .expect(400);
+  });
+
+  it('/PATCH users/me - пустое поле name (400)', async () => {
+    await request(server)
+      .patch('/users/me')
+      .auth(accessToken, { type: 'bearer' })
+      .send({ name: '' })
+      .expect(400);
+  });
+
+  it('/PATCH users/me - email уже существует (409)', async () => {
+    await request(server)
+      .patch('/users/me')
+      .auth(accessToken, { type: 'bearer' })
+      .send({ email: 'ekaterina@example.com' })
+      .expect(409);
+  });
+
   it('/PATCH users/me/password - обновление пароля текущего пользователя', async () => {
     const res = await request(server)
       .patch('/users/me/password')
@@ -86,6 +116,14 @@ describe('UsersController (e2e)', () => {
     const user = res.body as FindUserDTO;
     expect(user).not.toHaveProperty('password');
     expect(user).not.toHaveProperty('refreshToken');
+  });
+
+  it('/PATCH users/me/password - пароль не может быть пустым (400)', async () => {
+    await request(server)
+      .patch('/users/me/password')
+      .auth(accessToken, { type: 'bearer' })
+      .send({ password: '' })
+      .expect(400);
   });
 
   it('/GET users/:id - получение пользователя по ID', async () => {

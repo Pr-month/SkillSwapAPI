@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -83,6 +84,9 @@ export class UsersService {
   }
 
   async updatePassword(id: string, newPassword: string) {
+    if (newPassword.length === 0) {
+      throw new BadRequestException('Пароль не может быть пустым');
+    }
     const hashedPassword = await bcrypt.hash(newPassword, this.config.salt);
     const user = await this.userRepository.findOneByOrFail({ id });
     const updatedUser = await this.userRepository.save({
