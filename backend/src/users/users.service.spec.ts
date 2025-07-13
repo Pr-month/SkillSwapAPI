@@ -200,13 +200,6 @@ describe('UsersService', () => {
     });
   });
 
-  describe('testfindOne', () => {
-    it('успешно отправляет уведомление пользователю', () => {
-      service.testfindOne('1');
-      expect(notificationsGateway.notifyUser).toHaveBeenCalled();
-    });
-  });
-
   describe('updateUser', () => {
     it('успешно обновляет пользователя', async () => {
       const updatedUser = { ...users[0], name: 'Арчибальд' };

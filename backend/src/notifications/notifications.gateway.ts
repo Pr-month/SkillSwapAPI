@@ -31,12 +31,6 @@ export class NotificationsGateway
   ) {}
   @WebSocketServer() server: Server;
 
-  onModuleInit() {
-    logger.info(
-      `webSocket listen port: ${Number(process.env.WS_PORT) || 4000}`,
-    );
-  }
-
   async handleConnection(client: SocketWithUser) {
     try {
       this.jwtGuard.verifyToken(client);

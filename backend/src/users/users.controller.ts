@@ -55,12 +55,6 @@ export class UsersController {
     return this.usersService.findOne(req.user.sub);
   }
 
-  @UseGuards(AccessTokenGuard)
-  @Get('test')
-  testUser(@Req() req: AuthRequest) {
-    return this.usersService.testfindOne(req.user.sub);
-  }
-
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Patch('me')

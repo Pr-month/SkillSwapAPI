@@ -1,7 +1,6 @@
-import * as dotenv from 'dotenv';
-import { logger } from 'src/logger/mainLogger';
-import { DataSourceOptions } from 'typeorm';
 import { ConfigType, registerAs } from '@nestjs/config';
+import * as dotenv from 'dotenv';
+import { DataSourceOptions } from 'typeorm';
 dotenv.config();
 
 export const configuration = registerAs('APP_CONFIG', () => ({
@@ -22,24 +21,6 @@ export const configuration = registerAs('APP_CONFIG', () => ({
 
 export type IConfig = ConfigType<typeof configuration>;
 
-logger.info(
-  `Проверка подгрузки env ${JSON.stringify(
-    {
-      port: process.env.PORT,
-      nodeEnv: process.env.NODE_ENV,
-      databaseName: process.env.DATABASE_NAME,
-      jwt: {
-        accessTokenSecretExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
-        refreshTokenExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
-        accessTokenSecret: process.env.JWT_ACCESS_SECRET,
-        refreshTokenSecret: process.env.JWT_REFRESH_SECRET,
-      },
-    },
-    null,
-    2,
-  )}`,
-);
-
 export const commonDataSource: DataSourceOptions = {
   name: 'default',
   type: 'postgres',
@@ -49,9 +30,7 @@ export const commonDataSource: DataSourceOptions = {
   password: process.env.DATABASE_PASSWORD || 'postgres',
   database: process.env.DATABASE_NAME || 'skillswap',
   synchronize: process.env.NODE_ENV !== 'production',
-  logging: process.env.NODE_ENV !== 'production',
   dropSchema: process.env.DROP_SCHEMA === 'true',
-
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
 };

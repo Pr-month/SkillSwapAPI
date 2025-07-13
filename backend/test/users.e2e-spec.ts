@@ -64,13 +64,6 @@ describe('UsersController (e2e)', () => {
     expect(user.name).toBe('Владислав');
   });
 
-  it('/GET users/test - отправка уведомления пользователю', async () => {
-    await request(server)
-      .get('/users/test')
-      .auth(accessToken, { type: 'bearer' })
-      .expect(200);
-  });
-
   it('/PATCH users/me - обновление данных текущего пользователя', async () => {
     const res = await request(server)
       .patch('/users/me')
