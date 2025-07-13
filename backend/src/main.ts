@@ -9,15 +9,17 @@ import { HttpLoggerMiddleware } from './logger/http-logger.middleware';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { IConfig } from './config/configuration';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: new WinstonLoggerService(),
   });
   const configService = app.get(ConfigService);
+  const config = configService.get<IConfig>('APP_CONFIG')!;
 
   app.use(cookieParser());
-  app.useGlobalFilters(new AllExceptionFilter(configService));
+  app.useGlobalFilters(new AllExceptionFilter(config));
   app.use(new HttpLoggerMiddleware().use);
 
   app.useGlobalPipes(
@@ -28,7 +30,7 @@ async function bootstrap() {
     }),
   );
   app.useWebSocketAdapter(new IoAdapter(app));
-  const config = new DocumentBuilder()
+  const documentConfig = new DocumentBuilder()
     .setTitle('SkillSwap API')
     .setDescription('API')
     .setVersion('1.0')
@@ -41,11 +43,11 @@ async function bootstrap() {
       'refresh-token',
     )
     .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  const documentFactory = () =>
+    SwaggerModule.createDocument(app, documentConfig);
   SwaggerModule.setup('api/doc', app, documentFactory);
-  const port = configService.get<number>('port') as number;
-  await app.listen(port);
-  logger.info(`app listen port: ${port}`);
+  await app.listen(config.port);
+  logger.info(`app listen port: ${config.port}`);
 }
 bootstrap().catch((err) => {
   logger.error(err);

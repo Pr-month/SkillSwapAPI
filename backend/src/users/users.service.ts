@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,20 +11,21 @@ import { Repository } from 'typeorm';
 import { CreateUsersDto } from './dto/create.users.dto';
 import { UpdateUsersDto } from './dto/update.users.dto';
 import { User } from './entities/users.entity';
-import { ConfigService } from '@nestjs/config';
 import { Skill } from 'src/skills/entities/skill.entity';
 import { FindUserDTO } from './dto/find.users.dto';
 
 import { logger } from 'src/logger/mainLogger';
 import { NotificationsGateway } from 'src/notifications/notifications.gateway';
 import { NotificationType } from 'src/notifications/ws-jwt/types';
+import { configuration, IConfig } from '../config/configuration';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Skill) private skillRepository: Repository<Skill>,
-    private readonly configService: ConfigService,
+    @Inject(configuration.KEY)
+    private readonly config: IConfig,
     private notificationsGateway: NotificationsGateway,
   ) {}
   async create(createUserDto: CreateUsersDto) {
@@ -81,10 +83,7 @@ export class UsersService {
   }
 
   async updatePassword(id: string, newPassword: string) {
-    const hashedPassword = await bcrypt.hash(
-      newPassword,
-      this.configService.get<number>('salt') as number,
-    );
+    const hashedPassword = await bcrypt.hash(newPassword, this.config.salt);
     const user = await this.userRepository.findOneByOrFail({ id });
     const updatedUser = await this.userRepository.save({
       ...user,
@@ -123,7 +122,7 @@ export class UsersService {
       where: { id: skillId },
     });
 
-    if (user.favoriteSkills.some((s) => s.id === skill.id)) {
+    if (user.favoriteSkills?.some((s) => s.id === skill.id)) {
       throw new ConflictException('Навык уже в избранном');
     }
 
@@ -146,7 +145,7 @@ export class UsersService {
       where: { id: skillId },
     });
 
-    if (!user.favoriteSkills.some((s) => s.id === skill.id)) {
+    if (!user.favoriteSkills?.some((s) => s.id === skill.id)) {
       throw new NotFoundException('Навык уже удалён из избранного');
     }
 

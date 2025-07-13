@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { Gender, UserRole } from '../users/enums';
 import { RegisterDto } from './dto/register.auth.dto';
+import { configuration } from '../config/configuration';
 
 jest.mock('bcrypt');
 
@@ -20,7 +20,11 @@ describe('AuthService', () => {
   };
   let jwtService: { signAsync: jest.Mock };
   let configService: {
-    get: jest.Mock<10 | 'refresh-secret' | '7d' | undefined, [string]>;
+    salt: number;
+    jwt: {
+      refreshToken: string;
+      refreshTokenExpiresIn: string;
+    };
   };
 
   const user = {
@@ -49,12 +53,11 @@ describe('AuthService', () => {
       signAsync: jest.fn().mockResolvedValue('это подписанный токен'),
     };
     configService = {
-      get: jest.fn((key: string) => {
-        if (key === 'salt') return 10;
-        if (key === 'jwt.refreshTokenSecret') return 'refresh-secret';
-        if (key === 'jwt.refreshTokenExpiresIn') return '7d';
-        return undefined;
-      }),
+      salt: 10,
+      jwt: {
+        refreshToken: 'refresh-secret',
+        refreshTokenExpiresIn: '7d',
+      },
     };
     (bcrypt.hash as jest.Mock).mockImplementation((data) => `hashed-${data}`);
     (bcrypt.compare as jest.Mock).mockImplementation(
@@ -66,7 +69,7 @@ describe('AuthService', () => {
         AuthService,
         { provide: UsersService, useValue: usersService },
         { provide: JwtService, useValue: jwtService },
-        { provide: ConfigService, useValue: configService },
+        { provide: configuration.KEY, useValue: configService },
       ],
     }).compile();
 

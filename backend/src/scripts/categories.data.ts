@@ -1,4 +1,4 @@
-import { Category } from '../category/entities/category.entity';
+import { Category } from '../categories/entities/category.entity';
 
 const rootCategories: Record<string, Category> = {
   music: {

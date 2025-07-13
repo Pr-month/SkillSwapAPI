@@ -6,14 +6,14 @@ import {
   PayloadTooLargeException,
   HttpException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { QueryFailedError } from 'typeorm';
 import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
+import { IConfig } from '../config/configuration';
 
 @Catch()
 export class AllExceptionFilter implements ExceptionFilter {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly config: Pick<IConfig, 'upload'>) {}
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -71,7 +71,7 @@ export class AllExceptionFilter implements ExceptionFilter {
     ) {
       return response.status(HttpStatus.PAYLOAD_TOO_LARGE).json({
         statusCode: HttpStatus.PAYLOAD_TOO_LARGE,
-        message: `Вес файла не должен превышать ${this.configService.get<string>('upload.fileSizeMax')} МБ`,
+        message: `Вес файла не должен превышать ${this.config.upload.fileSizeMax} МБ`,
       });
     }
 
