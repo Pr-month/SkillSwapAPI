@@ -20,10 +20,21 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
+<<<<<<< HEAD
         run: npm ci
 
       - name: Run linter
         run: npm run lint
+=======
+        run: |
+          cd backend
+          npm ci
+
+      - name: Run linter
+        run: |
+          cd backend
+          npm run lint
+>>>>>>> 3f4fd56036862cf184cd85baf6ed599ad45ca1bc
 
   unit-tests:
     name: Run Unit Tests (only on main)
@@ -39,10 +50,21 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
+<<<<<<< HEAD
         run: npm ci
 
       - name: Run unit tests
         run: npm run test
+=======
+        run: |
+          cd backend
+          npm ci
+
+      - name: Run unit tests
+        run: |
+          cd backend
+          npm run test
+>>>>>>> 3f4fd56036862cf184cd85baf6ed599ad45ca1bc
 
   e2e-tests:
     name: Run E2E Tests (only on main)
@@ -78,7 +100,18 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
+<<<<<<< HEAD
         run: npm ci
 
       - name: Run e2e tests
         run: npm run test:e2e
+=======
+        run: |
+          cd backend
+          npm ci
+
+      - name: Run e2e tests
+        run: |
+          cd backend
+          npm run test:e2e
+>>>>>>> 3f4fd56036862cf184cd85baf6ed599ad45ca1bc
