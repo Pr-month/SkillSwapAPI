@@ -5,6 +5,7 @@ import { Gender, UserRole } from '../users/enums';
 import { RequestStatus } from '../requests/enums';
 import { Request } from '../requests/entities/request.entity';
 import { Category } from '../categories/entities/category.entity';
+import { faker } from '@faker-js/faker';
 
 const testSeed = new SeedSimple(User, {
   success: 'Тестовые данные загружены',
@@ -51,31 +52,32 @@ testSeed.run(async (repository) => {
   ]);
 
   const skillRepository = repository.manager.getRepository(Skill);
-  const categories = repository.manager.getRepository(Category);
-  const drumCategory = await categories.findOneByOrFail({ name: 'Барабан' });
-  const guitarCategory = await categories.findOneByOrFail({ name: 'Гитара' });
-  const pkCategory = await categories.findOneByOrFail({ name: 'ПК' });
-
+  const categories = await repository.manager.getRepository(Category).find();
+  const generateImages = () => {
+    return Array.from({ length: faker.number.int({ min: 0, max: 3 }) }, () =>
+      faker.image.url(),
+    );
+  };
   const skills = await skillRepository.save([
     {
       title: 'Барабаны',
       description: 'Умею играть на барабанах',
-      category: drumCategory,
-      images: ['image1.png'],
+      category: categories[2],
+      images: generateImages(),
       owner: users[0],
     },
     {
       title: 'Гитара',
       description: 'Умею играть на гитаре',
-      images: ['image2.png', 'image3.png'],
-      category: guitarCategory,
+      images: generateImages(),
+      category: categories[3],
       owner: users[1],
     },
     {
       title: 'Пасьянс',
       description: 'Умею раскладывать пасьянс',
-      images: [],
-      category: pkCategory,
+      images: generateImages(),
+      category: categories[5],
       owner: users[2],
     },
   ]);
