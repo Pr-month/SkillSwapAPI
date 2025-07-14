@@ -17,6 +17,7 @@ export const configuration = registerAs('APP_CONFIG', () => ({
     dir: process.env.UPLOAD_DIR || './public/uploads',
     fileSizeMax: Number(process.env.UPLOAD_FILE_SIZE_MAX || 2 * 1024 * 1024),
   },
+  database: commonDataSource,
 }));
 
 export type IConfig = ConfigType<typeof configuration>;

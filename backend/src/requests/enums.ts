@@ -11,3 +11,8 @@ export enum RequestAction {
   ACCEPT = 'accept',
   REJECT = 'reject',
 }
+
+export enum RequestType {
+  INCOMING = 'incoming',
+  OUTGOING = 'outgoing',
+}

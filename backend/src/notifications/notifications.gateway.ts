@@ -27,7 +27,6 @@ export class NotificationsGateway
 {
   constructor(
     private readonly jwtGuard: JwtWsGuard,
-    private readonly configService: ConfigService,
   ) {}
   @WebSocketServer() server: Server;
 

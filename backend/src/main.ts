@@ -16,7 +16,7 @@ async function bootstrap() {
     logger: new WinstonLoggerService(),
   });
   const configService = app.get(ConfigService);
-  const config: IConfig = configService.get('')!;
+  const config = configService.get<IConfig>('APP_CONFIG')!;
 
   app.use(cookieParser());
   app.useGlobalFilters(new AllExceptionFilter(config));
@@ -46,9 +46,8 @@ async function bootstrap() {
   const documentFactory = () =>
     SwaggerModule.createDocument(app, documentConfig);
   SwaggerModule.setup('api/doc', app, documentFactory);
-  const port = configService.get<number>('port') as number;
-  await app.listen(port);
-  logger.info(`app listen port: ${port}`);
+  await app.listen(config.port);
+  logger.info(`app listen port: ${config.port}`);
 }
 bootstrap().catch((err) => {
   logger.error(err);
