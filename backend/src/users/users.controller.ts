@@ -15,13 +15,14 @@ import { UsersService } from './users.service';
 import { AuthRequest } from '../auth/types';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
 import { User } from './entities/users.entity';
+import { RoleGuard } from '../auth/guards/role-guard.guard';
 
-//Создание точки входа для работы с пользователями
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -54,12 +55,6 @@ export class UsersController {
     return this.usersService.findOne(req.user.sub);
   }
 
-  @UseGuards(AccessTokenGuard)
-  @Get('test')
-  testUser(@Req() req: AuthRequest) {
-    return this.usersService.testfindOne(req.user.sub);
-  }
-
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Patch('me')
@@ -76,16 +71,30 @@ export class UsersController {
     return this.usersService.updateUser(req.user.sub, updateUserDto);
   }
 
-  @ApiBearerAuth('refresh-token')
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Patch('me/password')
   @ApiOperation({
     summary: 'Обновление пароля текущего пользователя',
     description: 'ТОКЕН БЕРЁМ ИЗ ОТВЕТА ПРИ РЕГИСТРАЦИИ',
   })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        password: {
+          type: 'string',
+          example: 'newPassword',
+          description: 'Новый пароль пользователя',
+        },
+      },
+      required: ['password'],
+    },
+  })
   @ApiResponse({
     status: 200,
     description: 'Данные текущего пользователя',
+    type: User,
   })
   updatePassword(@Req() req: AuthRequest, @Body('password') password: string) {
     return this.usersService.updatePassword(req.user.sub, password);
@@ -110,10 +119,12 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(AccessTokenGuard, RoleGuard)
   @Delete(':id')
   @ApiOperation({
     summary: 'Удаление пользователя по ID',
-    description: 'ID берём из GET/users',
+    description: 'Удалить пользователя может только админ',
   })
   @ApiParam({
     name: 'id',
@@ -122,7 +133,7 @@ export class UsersController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Данные пользователя',
+    description: 'Сообщение об удалении пользователя',
     schema: {
       example: {
         message:

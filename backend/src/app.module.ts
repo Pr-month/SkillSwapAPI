@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { configuration } from './config/configuration';
+import { ConfigModule } from '@nestjs/config';
+import { configuration, IConfig} from './config/configuration';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppDataSource } from './config/ormconfig';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
@@ -25,20 +24,25 @@ import { NotificationsModule } from './notifications/notifications.module';
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
+      inject: [configuration.KEY],
       global: true,
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (config: IConfig) => ({
         global: true,
-        secret: configService.get<string>('jwt.accessTokenSecret'),
+        secret: config.jwt.accessTokenSecret,
         signOptions: {
-          expiresIn: configService.get<string>(
-            'jwt.accessTokenSecretExpiresIn',
-          ),
+          expiresIn: config.jwt.accessTokenSecretExpiresIn,
         },
       }),
     }),
     // подключаем TypeORM с настройками из ormconfig.ts
-    TypeOrmModule.forRoot(AppDataSource.options),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [configuration.KEY],
+      useFactory: (config: IConfig) => ({
+        ...config.database,
+        autoLoadEntities: true,
+      }),
+    }),
     UsersModule,
     AuthModule,
     SkillsModule,

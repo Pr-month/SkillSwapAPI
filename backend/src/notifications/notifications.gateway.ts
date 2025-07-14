@@ -1,34 +1,20 @@
-// import { SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
-
-// @WebSocketGateway()
-// export class NotificationsGateway {
-//   @SubscribeMessage('message')
-//   handleMessage(client: any, payload: any): string {
-//     return 'Hello world!';
-//   }
-// }
-
-// ===========================================
-
-// src/notifications/notifications.gateway.ts
-
 import {
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   WebSocketGateway,
-  WebSocketServer, // Для доступа к объекту сервера Socket.IO (для отправки сообщений)
-  OnGatewayConnection, // Интерфейс для обработки подключения
-  OnGatewayDisconnect, // Интерфейс для обработки отключения
-  WsException, // Для обработки ошибок WebSocket
+  WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 
-import { Server } from 'socket.io'; // Типизация Socket и Server из socket.io
+import { Server } from 'socket.io';
 
 import { logger } from 'src/logger/mainLogger';
 import { JwtWsGuard } from './ws-jwt/ws-jwt.guard';
 
-import { NotificationType, SocketWithUser } from './ws-jwt/types';
 import { Injectable } from '@nestjs/common';
+import { NotificationType, SocketWithUser } from './ws-jwt/types';
 
-@WebSocketGateway({
+@WebSocketGateway(Number(process.env.WS_PORT) || 4000, {
   cors: {
     origin: '*', // Разрешить запросы от любых источников (для разработки).
     credentials: true, // Разрешить передачу учетных данных (например, куки, авторизационные заголовки)
@@ -38,7 +24,9 @@ import { Injectable } from '@nestjs/common';
 export class NotificationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(private readonly jwtGuard: JwtWsGuard) {}
+  constructor(
+    private readonly jwtGuard: JwtWsGuard,
+  ) {}
   @WebSocketServer() server: Server;
 
   async handleConnection(client: SocketWithUser) {

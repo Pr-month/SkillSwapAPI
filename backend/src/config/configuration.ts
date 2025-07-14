@@ -1,9 +1,9 @@
+import { ConfigType, registerAs } from '@nestjs/config';
 import * as dotenv from 'dotenv';
-import { logger } from 'src/logger/mainLogger';
 import { DataSourceOptions } from 'typeorm';
 dotenv.config();
 
-export const configuration = () => ({
+export const configuration = registerAs('APP_CONFIG', () => ({
   port: Number(process.env.PORT) || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
   jwt: {
@@ -17,38 +17,21 @@ export const configuration = () => ({
     dir: process.env.UPLOAD_DIR || './public/uploads',
     fileSizeMax: Number(process.env.UPLOAD_FILE_SIZE_MAX || 2 * 1024 * 1024),
   },
-});
+  database: commonDataSource,
+}));
 
-logger.info(
-  `Проверка подгрузки env ${JSON.stringify(
-    {
-      port: process.env.PORT,
-      nodeEnv: process.env.NODE_ENV,
-      databaseName: process.env.DATABASE_NAME,
-      jwt: {
-        accessTokenSecretExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
-        refreshTokenExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
-        accessTokenSecret: process.env.JWT_ACCESS_SECRET,
-        refreshTokenSecret: process.env.JWT_REFRESH_SECRET,
-      },
-    },
-    null,
-    2,
-  )}`,
-);
+export type IConfig = ConfigType<typeof configuration>;
 
 export const commonDataSource: DataSourceOptions = {
   name: 'default',
   type: 'postgres',
   host: process.env.DATABASE_HOST || 'localhost',
-  port: parseInt(process.env.INTERIOR_DATABASE_PORT ?? '5432'),
+  port: parseInt(process.env.EXTERNAL_DATABASE_PORT ?? '5432'),
   username: process.env.DATABASE_USER || 'postgres',
   password: process.env.DATABASE_PASSWORD || 'postgres',
   database: process.env.DATABASE_NAME || 'skillswap',
   synchronize: process.env.NODE_ENV !== 'production',
-  logging: process.env.NODE_ENV !== 'production',
-  dropSchema: process.env.NODE_ENV === 'test',
-
+  dropSchema: process.env.DROP_SCHEMA === 'true',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
 };
