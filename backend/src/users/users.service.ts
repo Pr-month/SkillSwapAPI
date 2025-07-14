@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -13,10 +14,7 @@ import { UpdateUsersDto } from './dto/update.users.dto';
 import { User } from './entities/users.entity';
 import { Skill } from 'src/skills/entities/skill.entity';
 import { FindUserDTO } from './dto/find.users.dto';
-
-import { logger } from 'src/logger/mainLogger';
 import { NotificationsGateway } from 'src/notifications/notifications.gateway';
-import { NotificationType } from 'src/notifications/ws-jwt/types';
 import { configuration, IConfig } from '../config/configuration';
 
 @Injectable()
@@ -57,16 +55,6 @@ export class UsersService {
     return userWithoutPassword;
   }
 
-  testfindOne(id: string) {
-    logger.info(`отправляем сообщение пользователю  ${id}`);
-    this.notificationsGateway.notifyUser(id, {
-      type: NotificationType.NEW_REQUEST,
-      skillName: 'полет',
-      sender: '454fgf',
-    });
-    //return userWithoutPassword;
-  }
-
   async updateUser(id: string, updateUserDto: UpdateUsersDto) {
     const user = await this.userRepository.findOneOrFail({
       where: { id },
@@ -83,6 +71,9 @@ export class UsersService {
   }
 
   async updatePassword(id: string, newPassword: string) {
+    if (newPassword.length === 0) {
+      throw new BadRequestException('Пароль не может быть пустым');
+    }
     const hashedPassword = await bcrypt.hash(newPassword, this.config.salt);
     const user = await this.userRepository.findOneByOrFail({ id });
     const updatedUser = await this.userRepository.save({

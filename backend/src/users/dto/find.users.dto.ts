@@ -1,5 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import {
+  IsArray,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -38,9 +39,12 @@ export class FindUserDTO extends PartialType(User) {
   @IsEnum(Gender)
   gender: Gender;
 
+  @IsArray()
   skills: Skill[];
 
+  @IsArray()
   favoriteSkills: Skill[];
 
+  @IsEnum(UserRole)
   role: UserRole;
 }

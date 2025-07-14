@@ -17,8 +17,6 @@ export class AllExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    console.log(exception);
-    console.log(typeof exception);
     if (
       typeof exception === 'object' &&
       exception !== null &&
@@ -33,7 +31,6 @@ export class AllExceptionFilter implements ExceptionFilter {
 
       const detail = driverError?.detail ?? '';
       const table = driverError?.table ?? 'Entity';
-      console.log(detail);
       const match = detail.match(/\((.+?)\)=\((.+?)\)/);
       const field = match?.[1];
       const value = match?.[2];

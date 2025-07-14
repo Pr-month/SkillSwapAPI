@@ -2,6 +2,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import {
   IsEmail,
   IsEnum,
+  IsNotEmpty,
   IsOptional,
   IsString,
   Max,
@@ -14,6 +15,7 @@ import { Gender } from '../enums';
 export class UpdateUsersDto extends PartialType(CreateUsersDto) {
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @ApiProperty({ example: 'alex', description: 'Имя пользователя' })
   name?: string;
 

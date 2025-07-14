@@ -21,8 +21,8 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { User } from './entities/users.entity';
+import { RoleGuard } from '../auth/guards/role-guard.guard';
 
-//Создание точки входа для работы с пользователями
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -53,12 +53,6 @@ export class UsersController {
   })
   findCurrentUser(@Req() req: AuthRequest) {
     return this.usersService.findOne(req.user.sub);
-  }
-
-  @UseGuards(AccessTokenGuard)
-  @Get('test')
-  testUser(@Req() req: AuthRequest) {
-    return this.usersService.testfindOne(req.user.sub);
   }
 
   @ApiBearerAuth('access-token')
@@ -125,10 +119,12 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(AccessTokenGuard, RoleGuard)
   @Delete(':id')
   @ApiOperation({
     summary: 'Удаление пользователя по ID',
-    description: 'ID берём из GET/users',
+    description: 'Удалить пользователя может только админ',
   })
   @ApiParam({
     name: 'id',
@@ -137,7 +133,7 @@ export class UsersController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Данные пользователя',
+    description: 'Сообщение об удалении пользователя',
     schema: {
       example: {
         message:
