@@ -1,8 +1,8 @@
 import {
-  WebSocketGateway,
-  WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  WebSocketGateway,
+  WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
 
@@ -11,9 +11,8 @@ import { Server } from 'socket.io';
 import { logger } from 'src/logger/mainLogger';
 import { JwtWsGuard } from './ws-jwt/ws-jwt.guard';
 
-import { NotificationType, SocketWithUser } from './ws-jwt/types';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { NotificationType, SocketWithUser } from './ws-jwt/types';
 
 @WebSocketGateway(Number(process.env.WS_PORT) || 4000, {
   cors: {
