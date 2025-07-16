@@ -63,7 +63,32 @@ export class SkillsController {
     description: 'Список навыков',
     schema: {
       example: {
-        data: [ResponseSkillDto],
+        data: [
+          {
+            id: '1e3a912b-72d5-4857-82ba-af32f5fbb797',
+            title: 'Гитара',
+            description: 'Умею играть на гитаре',
+            category: {
+              id: 'eef411af-86d5-46b1-bbe7-91f6d35ad7fc',
+              name: 'Гитара',
+            },
+            images: [
+              'https://loremflickr.com/1674/1791?lock=8857178983692165',
+              'https://loremflickr.com/85/3926?lock=1178754522388319',
+              'https://picsum.photos/seed/bb7OegHjS/956/2321',
+            ],
+            owner: {
+              id: 'e1961192-5aa9-4616-8234-ff290e9ef066',
+              name: 'Екатерина',
+              email: 'ekaterina@example.com',
+              age: 37,
+              city: 'Екатеринбург',
+              aboutMe: 'О себе',
+              gender: 'Ж',
+              role: 'user',
+            },
+          },
+        ],
         page: 1,
         totalPages: 1,
       },
