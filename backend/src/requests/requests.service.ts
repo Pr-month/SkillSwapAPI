@@ -12,7 +12,8 @@ import { User } from 'src/users/entities/users.entity';
 import { Repository } from 'typeorm';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
-import { RequestAction, RequestStatus } from './enums';
+import { RequestAction, RequestStatus, RequestType } from './enums';
+import { FindRequestQueryDto } from './dto/find-request.dto';
 import { JwtPayload } from '../auth/types';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { NotificationType } from '../notifications/ws-jwt/types';
@@ -119,8 +120,59 @@ export class RequestsService {
     return createdRequest;
   }
 
-  findAll() {
-    return `This action returns all requests`;
+  async findAll(senderID: string, query: FindRequestQueryDto) {
+    const page = Math.max(parseInt(query.page ?? '1'), 1);
+    const limit = Math.min(Math.max(parseInt(query.limit ?? '20'), 1), 100);
+
+    const qb = this.requestRepository
+      .createQueryBuilder('request')
+      .leftJoinAndSelect('request.sender', 'sender')
+      .leftJoinAndSelect('request.receiver', 'receiver')
+      .leftJoinAndSelect('request.offeredSkill', 'offeredSkill')
+      .leftJoinAndSelect('request.requestedSkill', 'requestedSkill')
+      .orderBy('request.createdAt', 'DESC');
+
+    if (query.type) {
+      if (query.type === RequestType.INCOMING) {
+        qb.andWhere('receiver.id = :currentUserId', {
+          currentUserId: senderID,
+        });
+      } else if (query.type === RequestType.OUTGOING) {
+        qb.andWhere('sender.id = :currentUserId', { currentUserId: senderID });
+      }
+    } else {
+      qb.andWhere(
+        '(sender.id = :currentUserId OR receiver.id = :currentUserId)',
+        { currentUserId: senderID },
+      );
+    }
+
+    if (query.status) {
+      qb.andWhere('request.status = :status', { status: query.status });
+    }
+
+    if (query.isRead !== undefined && query.isRead !== null) {
+      qb.andWhere('request.isRead = :isRead', { isRead: query.isRead });
+    }
+
+    const [requests, total] = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const totalPages = Math.ceil(total / limit);
+
+    if (page > totalPages && totalPages !== 0) {
+      throw new NotFoundException('Страница не найдена');
+    }
+
+    return {
+      data: requests,
+      page,
+      limit,
+      totalPages,
+      total,
+    };
   }
 
   async findOne(userid: string, id: string, role: string) {

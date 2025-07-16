@@ -4,7 +4,6 @@ import { configuration, IConfig } from './config/configuration';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppDataSource } from './config/ormconfig';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
@@ -36,7 +35,14 @@ import { NotificationsModule } from './notifications/notifications.module';
       }),
     }),
     // подключаем TypeORM с настройками из ormconfig.ts
-    TypeOrmModule.forRoot(AppDataSource.options),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [configuration.KEY],
+      useFactory: (config: IConfig) => ({
+        ...config.database,
+        autoLoadEntities: true,
+      }),
+    }),
     UsersModule,
     AuthModule,
     SkillsModule,
