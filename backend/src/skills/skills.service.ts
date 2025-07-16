@@ -67,6 +67,7 @@ export class SkillsService {
       : skill.category;
 
     return await this.skillRepository.save({
+      ...skill,
       ...updateSkillDto,
       category,
     });
@@ -93,7 +94,7 @@ export class SkillsService {
   async userIsOwner(skillId: string, userId: string) {
     const skill = await this.skillRepository.findOne({
       where: { id: skillId },
-      relations: ['owner'],
+      relations: ['owner', 'category'],
     });
     if (!skill) throw new NotFoundException('Навык не найден');
     if (skill.owner.id !== userId) {

@@ -22,9 +22,11 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
+  ApiParam,
 } from '@nestjs/swagger';
-import { Skill } from './entities/skill.entity';
+import { ResponseSkillDto } from './dto/response-skill.dto';
 
 @Controller('skills')
 export class SkillsController {
@@ -34,12 +36,38 @@ export class SkillsController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Получение всех навыков' })
+  @ApiOperation({ summary: 'Получение навыков' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Номер страницы для пагинации',
+    example: 1,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Количество навыков на странице',
+    example: 20,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Поиск по названию навыка',
+    example: 'гитара',
+    type: String,
+  })
   @ApiResponse({
     status: 200,
-    description: 'Список всех навыков',
-    type: Skill,
-    isArray: true,
+    description: 'Список навыков',
+    schema: {
+      example: {
+        data: [ResponseSkillDto],
+        page: 1,
+        totalPages: 1,
+      },
+    },
   })
   find(@Query() query: FindSkillsQueryDto) {
     return this.skillsService.find(query);
@@ -53,8 +81,22 @@ export class SkillsController {
   @ApiBody({ type: CreateSkillDto })
   @ApiResponse({
     status: 201,
-    description: 'Успешная регистрация',
-    type: CreateSkillDto,
+    description: 'Успешное создание навыка',
+    schema: {
+      example: {
+        title: 'Читать',
+        description: 'Умею читать книги',
+        category: {
+          id: '3f2a1b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
+        },
+        images: ['image1.png', 'image2.png'],
+        owner: {
+          id: '985b2def-496c-4cef-afca-cc2e912bdb6b',
+        },
+        message: 'Навык создан',
+        id: '5f185cd4-d025-4bfd-ac84-5315b911c859',
+      },
+    },
   })
   @UseGuards(AccessTokenGuard)
   @Post()
@@ -67,11 +109,16 @@ export class SkillsController {
     summary: 'Обновление навыка авторизованного пользователя',
     description: 'Поиск по ID навыка',
   })
+  @ApiParam({
+    name: 'id',
+    description: 'ID навыка',
+    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
+  })
   @ApiBody({ type: UpdateSkillDto })
   @ApiResponse({
     status: 200,
-    description: 'Успех обновление навыка',
-    type: Skill,
+    description: 'Успешное обновление навыка',
+    type: ResponseSkillDto,
   })
   @UseGuards(AccessTokenGuard)
   @Patch(':id')
@@ -88,12 +135,17 @@ export class SkillsController {
     summary: 'Удаление навыка авторизованного пользователя',
     description: 'Поиск по ID навыка',
   })
+  @ApiParam({
+    name: 'id',
+    description: 'ID навыка',
+    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
+  })
   @ApiResponse({
     status: 200,
     schema: {
       example: {
         message:
-          'Навык id d0d94783-2831-45fe-88f8-b53029f45704 удалён у пользователя',
+          'Навык с id 26ef3ca3-3bef-409a-85ec-a14e31f5870c удалён у пользователя',
       },
     },
   })
@@ -108,7 +160,20 @@ export class SkillsController {
   @Post('favorite/:id')
   @HttpCode(200)
   @ApiOperation({ summary: 'Добавить навык в избранное' })
-  @ApiResponse({ status: 200, description: 'Навык добавлен в избранное' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID навыка',
+    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Навык добавлен в избранное',
+    schema: {
+      example: {
+        message: 'Навык добавлен в избранное',
+      },
+    },
+  })
   async addFavorite(@Req() req: AuthRequest, @Param('id') skillId: string) {
     return this.usersService.addFavoriteSkill(req.user.sub, skillId);
   }
@@ -117,8 +182,21 @@ export class SkillsController {
   @UseGuards(AccessTokenGuard)
   @Delete('favorite/:id')
   @HttpCode(200)
-  @ApiOperation({ summary: 'Удалить навык из избранное' })
-  @ApiResponse({ status: 200, description: 'Навык удалён из избранного' })
+  @ApiOperation({ summary: 'Удалить навык из избранного' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID навыка',
+    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Навык удалён из избранного',
+    schema: {
+      example: {
+        message: 'Навык удалён из избранного',
+      },
+    },
+  })
   async removeFavorite(@Req() req: AuthRequest, @Param('id') skillId: string) {
     return this.usersService.removeFavoriteSkill(req.user.sub, skillId);
   }

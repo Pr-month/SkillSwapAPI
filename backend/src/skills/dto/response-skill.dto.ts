@@ -1,7 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { User } from '../../users/entities/users.entity';
 
-export class CreateSkillDto {
+export class ResponseSkillDto {
+  @IsUUID()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
+    description: 'Уникальный идентификатор навыка',
+  })
+  id: string;
+
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ example: 'Читать', description: 'Название навыка' })
@@ -12,13 +21,18 @@ export class CreateSkillDto {
   @ApiProperty({ example: 'Умею читать книги', description: 'Описание навыка' })
   description: string;
 
-  @IsUUID()
   @IsNotEmpty()
   @ApiProperty({
-    example: '3f2a1b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
-    description: 'ID категории навыка',
+    example: {
+      id: 'eef411af-86d5-46b1-bbe7-91f6d35ad7fc',
+      name: 'Искусство',
+    },
+    description: 'Категория навыка',
   })
-  category: string;
+  category: {
+    id: string;
+    name: string;
+  };
 
   @IsArray()
   @IsString({ each: true })
@@ -27,4 +41,11 @@ export class CreateSkillDto {
     description: 'Ссылки на иконки',
   })
   images: string[];
+
+  @ApiProperty({
+    description: 'Владелец навыка',
+    nullable: true,
+    type: () => User,
+  })
+  owner: User | null;
 }

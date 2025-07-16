@@ -65,14 +65,14 @@ export class Request {
   })
   status: RequestStatus;
 
-  @ManyToOne(() => Skill, { nullable: false, onDelete: 'RESTRICT' }) // Навык, который предлагает отправитель
+  @ManyToOne(() => Skill, { nullable: false, onDelete: 'CASCADE' }) // Навык, который предлагает отправитель
   @ApiProperty({
     type: () => Skill,
     description: 'Навык, который предлагает отправитель',
   })
   offeredSkill: Skill;
 
-  @ManyToOne(() => Skill, { nullable: false, onDelete: 'RESTRICT' }) // Навык, который отправитель хочет получить
+  @ManyToOne(() => Skill, { nullable: false, onDelete: 'CASCADE' }) // Навык, который отправитель хочет получить
   @ApiProperty({
     type: () => Skill,
     description: 'Навык, который отправитель хочет получить',

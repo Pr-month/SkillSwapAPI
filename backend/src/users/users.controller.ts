@@ -62,6 +62,10 @@ export class UsersController {
     summary: 'Обновление данных текущего пользователя',
     description: 'ТОКЕН БЕРЁМ ИЗ ОТВЕТА ПРИ РЕГИСТРАЦИИ',
   })
+  @ApiBody({
+    type: UpdateUsersDto,
+    description: 'Данные для обновления пользователя',
+  })
   @ApiResponse({
     status: 200,
     description: 'Данные текущего пользователя',

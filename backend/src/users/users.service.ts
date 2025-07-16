@@ -14,7 +14,6 @@ import { UpdateUsersDto } from './dto/update.users.dto';
 import { User } from './entities/users.entity';
 import { Skill } from 'src/skills/entities/skill.entity';
 import { FindUserDTO } from './dto/find.users.dto';
-import { NotificationsGateway } from 'src/notifications/notifications.gateway';
 import { configuration, IConfig } from '../config/configuration';
 
 @Injectable()
@@ -24,7 +23,6 @@ export class UsersService {
     @InjectRepository(Skill) private skillRepository: Repository<Skill>,
     @Inject(configuration.KEY)
     private readonly config: IConfig,
-    private notificationsGateway: NotificationsGateway,
   ) {}
   async create(createUserDto: CreateUsersDto) {
     const user = (await this.userRepository.save(createUserDto)) as User;
@@ -58,7 +56,7 @@ export class UsersService {
   async updateUser(id: string, updateUserDto: UpdateUsersDto) {
     const user = await this.userRepository.findOneOrFail({
       where: { id },
-      relations: ['skills'],
+      relations: ['skills', 'skills.category'],
     });
     const updatedUser = await this.userRepository.save({
       ...user,
