@@ -26,12 +26,20 @@ export class ResponseSkillDto {
     example: {
       id: 'eef411af-86d5-46b1-bbe7-91f6d35ad7fc',
       name: 'Искусство',
+      parent: {
+        id: 'a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6',
+        name: 'Творчество',
+      },
     },
     description: 'Категория навыка',
   })
   category: {
     id: string;
     name: string;
+    parent: {
+      id: string;
+      name: string;
+    };
   };
 
   @IsArray()
