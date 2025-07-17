@@ -15,12 +15,14 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
 import { RoleGuard } from 'src/auth/guards/role-guard.guard';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @UseGuards(AccessTokenGuard, RoleGuard)
+  @ApiBearerAuth('access-token')
+  @UseGuards(AccessTokenGuard)
   @Post()
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
@@ -31,11 +33,7 @@ export class CategoriesController {
     return this.categoriesService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(id);
-  }
-
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard, RoleGuard)
   @Patch(':id')
   update(
