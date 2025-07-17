@@ -1,4 +1,3 @@
-import { Type } from 'class-transformer';
 import { ApiProperty, PickType } from '@nestjs/swagger';
 import { CreateCategoryDto } from './create-category.dto';
 
