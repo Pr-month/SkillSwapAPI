@@ -1,5 +1,4 @@
 import {
-  IsArray,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -27,13 +26,4 @@ export class CreateCategoryDto {
     description: 'Id родительской категории',
   })
   parent?: string;
-
-  @IsArray()
-  @IsUUID('all', { each: true })
-  @ApiProperty({
-    type: () => [String],
-    example: [],
-    description: 'Id дочерних категорий',
-  })
-  children: string[];
 }
