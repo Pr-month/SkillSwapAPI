@@ -13,12 +13,13 @@ export class CategoriesService {
   ) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
-    const { parent, children } = createCategoryDto;
-    return await this.categoryRepository.save({
-      ...createCategoryDto,
-      parent: parent ? { id: parent } : undefined,
-      children: children.length > 0 ? children.map((id) => ({ id })) : [],
+    const { parent, ...rest } = createCategoryDto;
+
+    const category = this.categoryRepository.create({
+      ...rest,
+      parent: parent ? {id: parent } : null,
     });
+    return await this.categoryRepository.save(category);
   }
 
   async findAll(): Promise<Category[]> {
