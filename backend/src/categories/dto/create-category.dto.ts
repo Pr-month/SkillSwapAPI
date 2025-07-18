@@ -1,5 +1,4 @@
 import {
-  IsArray,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -7,13 +6,14 @@ import {
   MaxLength,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { F } from '@faker-js/faker/dist/airline-CLphikKp';
 
 export class CreateCategoryDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   @ApiProperty({
-    example: 'Музыкальный инструменты',
+    example: 'Музыкальные инструменты',
     description: 'Название категории',
   })
   name: string;
@@ -21,19 +21,10 @@ export class CreateCategoryDto {
   @IsOptional()
   @IsUUID()
   @ApiProperty({
-    nullable: true,
+    required: false,
     type: String,
-    example: '1',
+    example: '80316101-cc6a-4bbd-a412-7ebaef2da1e8',
     description: 'Id родительской категории',
   })
   parent?: string;
-
-  @IsArray()
-  @IsUUID('all', { each: true })
-  @ApiProperty({
-    type: () => [String],
-    example: [],
-    description: 'Id дочерних категорий',
-  })
-  children: string[];
 }

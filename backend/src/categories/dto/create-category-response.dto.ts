@@ -1,10 +1,22 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { CreateCategoryDto } from './create-category.dto';
+import { ApiProperty, PickType } from '@nestjs/swagger';
+import { CategoryResponseDto } from './category-response-dto';
 
-export class CategoryResponseDto extends CreateCategoryDto {
+class ParentCategoryDto {
   @ApiProperty({
-    example: 'd6c5f4e8-1a90-4b1c-b3d2-6e7g8h9i0000',
-    description: 'Уникальный идентификатор категории',
+    example: '80316101-cc6a-4bbd-a412-7ebaef2da1e8',
+    description: 'ID родительской категории',
+    type: String,
   })
   id: string;
+}
+export class CreateCategoryResponseDto extends PickType(CategoryResponseDto, [
+  'id',
+  'name',
+]) {
+  @ApiProperty({
+    nullable: true,
+    type: ParentCategoryDto,
+    description: 'Id родительской категории',
+  })
+  parent: ParentCategoryDto | null;
 }

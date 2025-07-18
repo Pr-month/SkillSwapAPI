@@ -22,8 +22,9 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
-import { CategoryResponseDto } from './dto/create-category-response.dto';
-import { FindALLCategoryResponseDto } from './dto/findAll-category-response.dto';
+import { CategoryResponseDto } from './dto/category-response-dto';
+import { FindALLCategoryResponseDto } from './dto/find-all-category-response-dto';
+import { CreateCategoryResponseDto } from './dto/create-category-response.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -34,11 +35,11 @@ export class CategoriesController {
     summary: 'Создание категории',
     description: 'Создать категорию может только админ',
   })
-  @ApiBody({ type: CreateCategoryDto })
+  @ApiBody({ type: CreateCategoryDto,description: "Указание parent не обязательно" })
   @ApiResponse({
     status: 201,
     description: 'Созданная категория',
-    type:CategoryResponseDto
+    type: CreateCategoryResponseDto,
   })
   @UseGuards(AccessTokenGuard, RoleGuard)
   @Post()
@@ -46,15 +47,15 @@ export class CategoriesController {
     return this.categoriesService.create(createCategoryDto);
   }
 
-@ApiOperation({
-    summary: 'Получение всех категорий' 
+  @ApiOperation({
+    summary: 'Получение всех категорий',
   })
   @ApiResponse({
-      status: 200,
-      description: 'Список всех категорий',
-      type: FindALLCategoryResponseDto,
-      isArray: true,
-    })
+    status: 200,
+    description: 'Список всех категорий',
+    type: FindALLCategoryResponseDto,
+    isArray: true,
+  })
   @Get()
   findAll() {
     return this.categoriesService.findAll();
@@ -70,8 +71,11 @@ export class CategoriesController {
     summary: 'Обновление категории',
     description: 'Обновить категорию может только админ',
   })
-  @ApiBody({ type: UpdateCategoryDto, description: "Для обновления указание всех полей не обязательно, только необходимые для обновления" })
-   @ApiParam({
+  @ApiBody({
+    type: UpdateCategoryDto,
+    description: 'Для обновления указываются поля что и при создании',
+  })
+  @ApiParam({
     name: 'id',
     description: 'id категории, которую нужно обновить',
     example: 'd6c5f4e8-1a90-4b1c-b3d2-6e7g8h9i0000',
@@ -79,7 +83,7 @@ export class CategoriesController {
   @ApiResponse({
     status: 200,
     description: 'Обновленная категория',
-    type:UpdateCategoryDto
+    type: CategoryResponseDto,
   })
   @UseGuards(AccessTokenGuard, RoleGuard)
   @Patch(':id')
@@ -90,7 +94,7 @@ export class CategoriesController {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
- @ApiBearerAuth('access-token')
+  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Удаление категории',
     description: 'Удалить категорию может только админ',
