@@ -26,7 +26,7 @@ export class CreateCategoryDto {
     example: '1',
     description: 'Id родительской категории',
   })
-  parent?: string;
+  parent?: string | null;
 
   @IsArray()
   @IsUUID('all', { each: true })
