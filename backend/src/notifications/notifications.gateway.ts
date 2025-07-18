@@ -24,9 +24,7 @@ import { NotificationType, SocketWithUser } from './ws-jwt/types';
 export class NotificationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(
-    private readonly jwtGuard: JwtWsGuard,
-  ) {}
+  constructor(private readonly jwtGuard: JwtWsGuard) {}
   @WebSocketServer() server: Server;
 
   async handleConnection(client: SocketWithUser) {

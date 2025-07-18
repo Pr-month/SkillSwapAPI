@@ -22,7 +22,9 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { Skill } from './entities/skill.entity';
 
@@ -35,11 +37,38 @@ export class SkillsController {
 
   @Get()
   @ApiOperation({ summary: 'Получение всех навыков' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: String,
+    description: 'Номер страницы (строка с цифрами)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: String,
+    description: 'Лимит на страницу (строка с цифрами)',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Строка поиска по навыкам',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Список всех навыков',
-    type: Skill,
-    isArray: true,
+    description: 'Список навыков с пагинацией',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: getSchemaPath(Skill) },
+        },
+        page: { type: 'number', example: 1 },
+        totalPages: { type: 'number', example: 10 },
+      },
+    },
   })
   find(@Query() query: FindSkillsQueryDto) {
     return this.skillsService.find(query);
@@ -53,8 +82,8 @@ export class SkillsController {
   @ApiBody({ type: CreateSkillDto })
   @ApiResponse({
     status: 201,
-    description: 'Успешная регистрация',
-    type: CreateSkillDto,
+    description: 'Успешное создание навыка',
+    type: Skill,
   })
   @UseGuards(AccessTokenGuard)
   @Post()
