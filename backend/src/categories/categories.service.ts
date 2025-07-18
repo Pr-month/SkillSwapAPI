@@ -28,17 +28,27 @@ export class CategoriesService {
     });
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} category`;
-  }
-
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     const category = await this.categoryRepository.findOneOrFail({
       where: { id: id },
       relations: ['parent', 'children'],
     });
 
-    Object.assign(category, updateCategoryDto);
+    if (updateCategoryDto.name !== undefined) {
+      category.name = updateCategoryDto.name;
+    }
+
+    if (updateCategoryDto.parent !== undefined) {
+      category.parent = updateCategoryDto.parent
+        ? ({ id: updateCategoryDto.parent } as Category)
+        : null;
+    }
+
+    if (updateCategoryDto.children !== undefined) {
+      category.children = updateCategoryDto.children.map((childId) => ({
+        id: childId,
+      })) as Category[];
+    }
 
     return this.categoryRepository.save(category);
   }
