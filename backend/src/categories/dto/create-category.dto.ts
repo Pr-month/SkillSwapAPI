@@ -6,7 +6,6 @@ import {
   MaxLength,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { F } from '@faker-js/faker/dist/airline-CLphikKp';
 
 export class CreateCategoryDto {
   @IsString()
