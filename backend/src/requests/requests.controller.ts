@@ -23,11 +23,21 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
+import { Request } from './entities/request.entity';
 
 @Controller('requests')
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
-
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Создание заявки',
+    description: 'Создать заявку может только авторизованный пользователь',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Заявка успешно создана',
+    type: Request,
+  })
   @UseGuards(AccessTokenGuard)
   @Post()
   create(@Req() req: AuthRequest, @Body() createRequestDto: CreateRequestDto) {

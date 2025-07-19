@@ -8,13 +8,14 @@ import {
 } from 'typeorm';
 
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from 'src/users/entities/users.entity';
-import { Skill } from 'src/skills/entities/skill.entity';
+import { User } from '../../users/entities/users.entity';
+import { Skill } from '../../skills/entities/skill.entity';
 import { RequestStatus } from '../enums';
+import { RequestedSkillDto } from 'src/skills/dto/requested-skill.dto';
 
 @Entity()
 export class Request {
-  @PrimaryGeneratedColumn('uuid') // Используем UUID для id, как в User
+  @PrimaryGeneratedColumn('uuid')
   @ApiProperty({
     example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
     description: 'Уникальный идентификатор заявки',
@@ -67,14 +68,14 @@ export class Request {
 
   @ManyToOne(() => Skill, { nullable: false, onDelete: 'CASCADE' }) // Навык, который предлагает отправитель
   @ApiProperty({
-    type: () => Skill,
+    type: RequestedSkillDto,
     description: 'Навык, который предлагает отправитель',
   })
   offeredSkill: Skill;
 
   @ManyToOne(() => Skill, { nullable: false, onDelete: 'CASCADE' }) // Навык, который отправитель хочет получить
   @ApiProperty({
-    type: () => Skill,
+    type: RequestedSkillDto,
     description: 'Навык, который отправитель хочет получить',
   })
   requestedSkill: Skill;
