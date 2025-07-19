@@ -220,6 +220,7 @@ export class RequestsService {
 
       case RequestAction.ACCEPT: {
         request.status = RequestStatus.ACCEPTED;
+        request.isRead = true;
         const { sender, receiver, offeredSkill, requestedSkill } = request;
 
         const senderHasRequested = sender.skills?.some(
@@ -241,6 +242,7 @@ export class RequestsService {
       }
 
       case RequestAction.REJECT: {
+        request.isRead = true;
         request.status =
           request.status === RequestStatus.PENDING
             ? RequestStatus.REJECTED

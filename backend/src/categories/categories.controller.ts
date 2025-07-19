@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
-// import { UpdateCategoryDto } from './dto/update-category.dto';
 import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
 import { RoleGuard } from 'src/auth/guards/role-guard.guard';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -25,6 +24,7 @@ import {
 import { CategoryResponseDto } from './dto/category-response-dto';
 import { FindALLCategoryResponseDto } from './dto/find-all-category-response-dto';
 import { CreateCategoryResponseDto } from './dto/create-category-response.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('categories')
 export class CategoriesController {
@@ -85,6 +85,7 @@ export class CategoriesController {
     description: 'Обновленная категория',
     type: CategoryResponseDto,
   })
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard, RoleGuard)
   @Patch(':id')
   update(

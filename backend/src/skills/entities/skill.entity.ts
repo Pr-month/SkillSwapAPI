@@ -22,7 +22,7 @@ export class Skill {
   @ApiProperty({ example: 'Умею читать книги', description: 'Описание навыка' })
   description: string;
 
-  @ManyToOne(() => Category, { nullable: false })
+  @ManyToOne(() => Category, { eager: true })
   category: Category;
 
   @Column('text', { array: true, nullable: true })
