@@ -24,7 +24,6 @@ import {
 import { CategoryResponseDto } from './dto/category-response-dto';
 import { FindALLCategoryResponseDto } from './dto/find-all-category-response-dto';
 import { CreateCategoryResponseDto } from './dto/create-category-response.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('categories')
 export class CategoriesController {
@@ -35,7 +34,10 @@ export class CategoriesController {
     summary: 'Создание категории',
     description: 'Создать категорию может только админ',
   })
-  @ApiBody({ type: CreateCategoryDto,description: "Указание parent не обязательно" })
+  @ApiBody({
+    type: CreateCategoryDto,
+    description: 'Указание parent не обязательно',
+  })
   @ApiResponse({
     status: 201,
     description: 'Созданная категория',
@@ -59,11 +61,6 @@ export class CategoriesController {
   @Get()
   findAll() {
     return this.categoriesService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(id);
   }
 
   @ApiBearerAuth('access-token')
