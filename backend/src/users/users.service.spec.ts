@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateUsersDto } from './dto/create.users.dto';
 import { configuration } from 'src/config/configuration';
 import { FindAllUsersQueryDto } from './dto/find-all-users.dto';
+import { NotFoundException } from '@nestjs/common';
 
 jest.mock('bcrypt');
 
@@ -205,6 +206,13 @@ describe('UsersService', () => {
       expect(oneUser).not.toHaveProperty('password');
       expect(oneUser).not.toHaveProperty('refreshToken');
     });
+    it('успешно находит всех пользователей с пагинацией по умолчанию', async () => {
+      const result = await service.findAll({});
+      expect(userRepository.createQueryBuilder).toHaveBeenCalled();
+      expect(result.data).toEqual(userWithoutPasswordMock);
+      expect(result.page).toBe(1);
+      expect(result.totalPages).toBe(1);
+    });
     it('возвращает пустой массив, если пользователей нет', async () => {
       const mockQueryBuilder =
         userRepository.createQueryBuilder() as MockQueryBuilder;
@@ -234,6 +242,18 @@ describe('UsersService', () => {
         'LOWER(user.name) LIKE :search OR LOWER(user.email) LIKE :search',
         { search: '%владислав%' },
       );
+    });
+    it('должен выбросить ошибку если страница не найдена', async () => {
+      const mockQueryBuilder =
+        userRepository.createQueryBuilder() as MockQueryBuilder;
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([[users[0]], 1]);
+
+      const query: FindAllUsersQueryDto = {
+        page: '10',
+        limit: '10',
+        search: '',
+      };
+      await expect(service.findAll(query)).rejects.toThrow(NotFoundException);
     });
   });
 
