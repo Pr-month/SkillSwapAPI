@@ -2,7 +2,7 @@ import { JwtService } from '@nestjs/jwt';
 import { IConfig } from 'src/config/configuration';
 import { JwtWsGuard } from './ws-jwt.guard';
 //todo
-describe('AccessTokenGuard', () => {
+describe('JwtWsGuard', () => {
   const jwtService = {
     verify: jest.fn(),
   };

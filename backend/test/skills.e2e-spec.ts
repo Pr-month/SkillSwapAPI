@@ -40,7 +40,7 @@ describe('SkillsController (e2e)', () => {
     accessToken = loginBody.accessToken;
     skillId = loginBody.user.skills[0].id;
     userId = loginBody.user.id as string;
-    categoryId = loginBody.user.skills[0].category.id;
+    categoryId = loginBody.user.skills[0].category.id as string;
     // получаем данные пользователя 2
     const loginRes2 = await request(server)
       .post('/auth/login')
@@ -194,8 +194,16 @@ describe('SkillsController (e2e)', () => {
       .expect(403);
     const body = res.body as { message: { message: string } };
     expect(body.message.message).toEqual(
-      `Пользователь ${userId} пытается обновить навык ${skillIdOtherUser}, которым не владеет`,
+      `Пользователь ${userId} не владеет навыком ${skillIdOtherUser}`,
     );
+  });
+
+  it('/PATCH skills/:id - навык c таким id не найден (404)', async () => {
+    await request(server)
+      .patch(`/skills/1`)
+      .auth(accessToken, { type: 'bearer' })
+      .send({ title: 'покер' })
+      .expect(404);
   });
 
   it('/POST skills/favorite/:id - добавить навык в избранное', async () => {
@@ -218,6 +226,13 @@ describe('SkillsController (e2e)', () => {
     expect(body.message.message).toEqual('Навык уже в избранном');
   });
 
+  it('/POST skills/favorite/:id - навык c таким id не найден (404)', async () => {
+    await request(server)
+      .post(`/skills/favorite/1`)
+      .auth(accessToken, { type: 'bearer' })
+      .expect(404);
+  });
+
   it('/DELETE skills/favorite/:id - удалить навык из избранного', async () => {
     const res = await request(server)
       .delete(`/skills/favorite/${skillId}`)
@@ -238,6 +253,13 @@ describe('SkillsController (e2e)', () => {
     expect(body.message.message).toEqual('Навык уже удалён из избранного');
   });
 
+  it('/DELETE skills/favorite/:id - навык c таким id не найден (404)', async () => {
+    await request(server)
+      .delete(`/skills/favorite/1`)
+      .auth(accessToken, { type: 'bearer' })
+      .expect(404);
+  });
+
   it('/DELETE skills/:id - удаление навыка по ID', async () => {
     const res = await request(server)
       .delete(`/skills/${skillId}`)
@@ -248,5 +270,25 @@ describe('SkillsController (e2e)', () => {
       message: `Навык с id ${skillId} удалён у пользователя`,
     });
     expect(existsSync(absolutePath)).toBe(false);
+  });
+
+  it('/DELETE skills/:id - некорректный id (400)', async () => {
+    const res = await request(server)
+      .delete(`/skills/1`)
+      .auth(accessToken, { type: 'bearer' })
+      .expect(400);
+    const body = res.body as { message: { message: string } };
+    expect(body.message.message).toEqual('Некорректный UUID навыка');
+  });
+
+  it('/DELETE skills/:id - пользователь пытыется удалить чужой навык (403)', async () => {
+    const res = await request(server)
+      .delete(`/skills/${skillIdOtherUser}`)
+      .auth(accessToken, { type: 'bearer' })
+      .expect(403);
+    const body = res.body as { message: { message: string } };
+    expect(body.message.message).toEqual(
+      `Пользователь ${userId} не владеет навыком ${skillIdOtherUser}`,
+    );
   });
 });

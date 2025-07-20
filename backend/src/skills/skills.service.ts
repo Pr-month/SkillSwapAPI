@@ -106,7 +106,7 @@ export class SkillsService {
     });
     if (skill.owner.id !== userId) {
       throw new ForbiddenException(
-        `Пользователь ${userId} пытается обновить навык ${skillId}, которым не владеет`,
+        `Пользователь ${userId} не владеет навыком ${skillId}`,
       );
     }
     return skill;

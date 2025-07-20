@@ -27,7 +27,10 @@ import {
   ApiParam,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { ResponseSkillDto } from './dto/response-skill.dto';
+import {
+  ResponseSkillDto,
+  ResponseSkillWithMessageDto,
+} from './dto/response-skill.dto';
 
 @Controller('skills')
 export class SkillsController {
@@ -95,21 +98,7 @@ export class SkillsController {
   @ApiResponse({
     status: 201,
     description: 'Успешное создание навыка',
-    schema: {
-      example: {
-        title: 'Читать',
-        description: 'Умею читать книги',
-        category: {
-          id: '3f2a1b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
-        },
-        images: ['image1.png', 'image2.png'],
-        owner: {
-          id: '985b2def-496c-4cef-afca-cc2e912bdb6b',
-        },
-        message: 'Навык создан',
-        id: '5f185cd4-d025-4bfd-ac84-5315b911c859',
-      },
-    },
+    type: ResponseSkillWithMessageDto,
   })
   @UseGuards(AccessTokenGuard)
   @Post()

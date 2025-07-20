@@ -1,46 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-
-export class SkillOwnerDto {
-  @ApiProperty({
-    example: '92230a55-a6e5-4c97-9ccf-31718e2adec3',
-    description: 'Уникальный идентификатор пользователя',
-  })
-  id: string;
-
-  @ApiProperty({ example: 'alex', description: 'Имя пользователя' })
-  name: string;
-
-  @ApiProperty({
-    example: 'alex@example.com',
-    description: 'Email пользователя',
-  })
-  email: string;
-
-  @ApiProperty({ example: 30, description: 'Возраст пользователя' })
-  age: number;
-
-  @ApiProperty({ example: 'New York', description: 'Город пользователя' })
-  city: string;
-
-  @ApiProperty({ example: 'О себе', description: 'Информация о пользователе' })
-  aboutMe: string;
-
-  @ApiProperty({ example: 'М', description: 'Пол пользователя' })
-  gender: string;
-
-  @ApiProperty({
-    example: [],
-    description: 'Список навыков пользователя',
-  })
-  favoriteSkills: {
-    id: string;
-    title: string;
-    description: string;
-    images: string[];
-  }[];
-  @ApiProperty({ example: 'user', description: 'Роль пользователя' })
-  role: string;
-}
+import { User } from 'src/users/entities/users.entity';
 
 export class RequestedSkillDto {
   @ApiProperty({
@@ -68,8 +27,8 @@ export class RequestedSkillDto {
   images: string[];
 
   @ApiProperty({
-    type: SkillOwnerDto,
+    type: User,
     description: 'Владелец навыка',
   })
-  owner: SkillOwnerDto;
+  owner: User;
 }

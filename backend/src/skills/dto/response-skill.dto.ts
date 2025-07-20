@@ -57,3 +57,11 @@ export class ResponseSkillDto {
   })
   owner: User | null;
 }
+
+export class ResponseSkillWithMessageDto extends ResponseSkillDto {
+  @ApiProperty({
+    example: 'Навык создан',
+    description: 'Сообщение о результате операции',
+  })
+  message: string;
+}
