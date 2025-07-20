@@ -13,9 +13,10 @@ import { CreateUsersDto } from './dto/create.users.dto';
 import { UpdateUsersDto } from './dto/update.users.dto';
 import { User } from './entities/users.entity';
 import { Skill } from 'src/skills/entities/skill.entity';
-import { FindUserDTO } from './dto/find.users.dto';
 import { NotificationsGateway } from 'src/notifications/notifications.gateway';
 import { configuration, IConfig } from '../config/configuration';
+import { FindAllUsersQueryDto } from './dto/find-all-users.dto';
+import { FindAllUsersResponseDto } from './dto/find-all-users-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -33,16 +34,44 @@ export class UsersService {
     return userWithoutPassword;
   }
 
-  async findAll() {
-    const users = await this.userRepository.find({
-      relations: ['skills'],
-    });
+  async findAll(query: FindAllUsersQueryDto): Promise<FindAllUsersResponseDto> {
+    const page = Math.max(parseInt(query.page ?? '1'), 1);
+    const limit = Math.min(Math.max(parseInt(query.limit ?? '20'), 1), 100);
+    const search = (query.search || '').trim().toLowerCase();
+
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.skills', 'skills');
+
+    if (search) {
+      qb.where(
+        'LOWER(user.name) LIKE :search OR LOWER(user.email) LIKE :search',
+        { search: `%${search}%` },
+      );
+    }
+
+    const [users, total] = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const totalPages = Math.ceil(total / limit);
+
+    if (page > totalPages && totalPages !== 0) {
+      throw new NotFoundException('Страница не найдена');
+    }
+
     const usersWithoutPassword = users.map((user) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, refreshToken, ...userWithoutPassword } = user;
-      return userWithoutPassword as FindUserDTO;
+      return userWithoutPassword;
     });
-    return usersWithoutPassword;
+
+    return {
+      data: usersWithoutPassword,
+      page,
+      totalPages,
+    };
   }
 
   async findOne(id: string) {
@@ -56,15 +85,11 @@ export class UsersService {
   }
 
   async updateUser(id: string, updateUserDto: UpdateUsersDto) {
-    const user = await this.userRepository.findOneOrFail({
+    await this.userRepository.update(id, updateUserDto);
+    const updatedUser = await this.userRepository.findOneOrFail({
       where: { id },
       relations: ['skills'],
     });
-    const updatedUser = await this.userRepository.save({
-      ...user,
-      ...updateUserDto,
-    });
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, refreshToken, ...userWithoutPassword } = updatedUser;
     return userWithoutPassword;
