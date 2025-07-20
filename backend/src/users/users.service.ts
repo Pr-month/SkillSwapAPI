@@ -56,15 +56,11 @@ export class UsersService {
   }
 
   async updateUser(id: string, updateUserDto: UpdateUsersDto) {
-    const user = await this.userRepository.findOneOrFail({
+    await this.userRepository.update(id, updateUserDto);
+    const updatedUser = await this.userRepository.findOneOrFail({
       where: { id },
       relations: ['skills'],
     });
-    const updatedUser = await this.userRepository.save({
-      ...user,
-      ...updateUserDto,
-    });
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, refreshToken, ...userWithoutPassword } = updatedUser;
     return userWithoutPassword;
