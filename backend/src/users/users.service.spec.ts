@@ -8,13 +8,27 @@ import { NotificationsGateway } from '../notifications/notifications.gateway';
 import * as bcrypt from 'bcrypt';
 import { CreateUsersDto } from './dto/create.users.dto';
 import { configuration } from 'src/config/configuration';
+import { FindAllUsersQueryDto } from './dto/find-all-users.dto';
 
 jest.mock('bcrypt');
+
+interface MockQueryBuilder {
+  leftJoinAndSelect: jest.Mock;
+  where: jest.Mock;
+  skip: jest.Mock;
+  take: jest.Mock;
+  getManyAndCount: jest.Mock;
+  relation: jest.Mock;
+  of: jest.Mock;
+  add: jest.Mock;
+  remove: jest.Mock;
+}
 
 describe('UsersService', () => {
   let service: UsersService;
   let userRepository: {
     save: jest.Mock;
+    update: jest.Mock;
     find: jest.Mock;
     findOne: jest.Mock;
     findOneOrFail: jest.Mock;
@@ -98,14 +112,27 @@ describe('UsersService', () => {
   };
 
   beforeEach(async () => {
+    const mockQueryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount: jest.fn().mockResolvedValue([users, users.length]),
+      relation: jest.fn().mockReturnThis(),
+      of: jest.fn().mockReturnThis(),
+      add: jest.fn(),
+      remove: jest.fn(),
+    };
+
     userRepository = {
       save: jest.fn(),
+      update: jest.fn(),
       find: jest.fn(),
       findOne: jest.fn(),
       findOneOrFail: jest.fn(),
       findOneByOrFail: jest.fn(),
       delete: jest.fn(),
-      createQueryBuilder: jest.fn(),
+      createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
     };
 
     skillRepository = {
@@ -163,20 +190,50 @@ describe('UsersService', () => {
   });
 
   describe('findAll', () => {
-    it('успешно находит всех пользователей', async () => {
-      userRepository.find.mockResolvedValue(users);
-      const result = await service.findAll();
-      const oneUser = result[0];
-      expect(userRepository.find).toHaveBeenCalled();
-      expect(result).toEqual(userWithoutPasswordMock);
+    it('успешно находит всех пользователей с пагинацией', async () => {
+      const query: FindAllUsersQueryDto = {
+        page: '1',
+        limit: '10',
+        search: '',
+      };
+      const result = await service.findAll(query);
+      const oneUser = result.data[0];
+      expect(userRepository.createQueryBuilder).toHaveBeenCalled();
+      expect(result.data).toEqual(userWithoutPasswordMock);
+      expect(result.page).toBe(1);
+      expect(result.totalPages).toBe(1);
       expect(oneUser).not.toHaveProperty('password');
       expect(oneUser).not.toHaveProperty('refreshToken');
     });
     it('возвращает пустой массив, если пользователей нет', async () => {
-      userRepository.find.mockResolvedValue([]);
-      const result = await service.findAll();
-      expect(userRepository.find).toHaveBeenCalled();
-      expect(result).toEqual([]);
+      const mockQueryBuilder =
+        userRepository.createQueryBuilder() as MockQueryBuilder;
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([[], 0]);
+
+      const query: FindAllUsersQueryDto = {
+        page: '1',
+        limit: '10',
+        search: '',
+      };
+      const result = await service.findAll(query);
+      expect(userRepository.createQueryBuilder).toHaveBeenCalled();
+      expect(result.data).toEqual([]);
+      expect(result.totalPages).toBe(0);
+    });
+    it('вызывает поиск по имени', async () => {
+      const mockQueryBuilder =
+        userRepository.createQueryBuilder() as MockQueryBuilder;
+
+      const query: FindAllUsersQueryDto = {
+        page: '1',
+        limit: '10',
+        search: 'владислав',
+      };
+      await service.findAll(query);
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'LOWER(user.name) LIKE :search OR LOWER(user.email) LIKE :search',
+        { search: '%владислав%' },
+      );
     });
   });
 
@@ -203,11 +260,13 @@ describe('UsersService', () => {
   describe('updateUser', () => {
     it('успешно обновляет пользователя', async () => {
       const updatedUser = { ...users[0], name: 'Арчибальд' };
-      userRepository.findOneOrFail.mockResolvedValue(users[0]);
-      userRepository.save.mockResolvedValue(updatedUser);
+      userRepository.findOneOrFail.mockResolvedValue(updatedUser);
+      userRepository.update.mockResolvedValue(undefined);
       const result = await service.updateUser('1', { name: 'Арчибальд' });
-      expect(userRepository.findOneOrFail).toHaveBeenCalled();
-      expect(userRepository.save).toHaveBeenCalledWith(updatedUser);
+      expect(userRepository.update).toHaveBeenCalledWith('1', {
+        name: 'Арчибальд',
+      });
+      expect(userRepository.findOneOrFail).toHaveBeenCalledTimes(1);
       expect(result).toEqual({
         ...userWithoutPasswordMock[0],
         name: 'Арчибальд',
@@ -310,11 +369,6 @@ describe('UsersService', () => {
     it('успешно добавляет навык в избранное', async () => {
       userRepository.findOneOrFail.mockResolvedValue(users[0]);
       skillRepository.findOneOrFail.mockResolvedValue(skill);
-      userRepository.createQueryBuilder.mockReturnValue({
-        relation: jest.fn().mockReturnThis(),
-        of: jest.fn().mockReturnThis(),
-        add: jest.fn(),
-      });
       const result = await service.addFavoriteSkill('1', 'skill1');
       expect(userRepository.findOneOrFail).toHaveBeenCalled();
       expect(skillRepository.findOneOrFail).toHaveBeenCalled();
@@ -360,11 +414,6 @@ describe('UsersService', () => {
         favoriteSkills: [{ id: 'skill1' }],
       });
       skillRepository.findOneOrFail.mockResolvedValue(skill);
-      userRepository.createQueryBuilder.mockReturnValue({
-        relation: jest.fn().mockReturnThis(),
-        of: jest.fn().mockReturnThis(),
-        remove: jest.fn(),
-      });
       const result = await service.removeFavoriteSkill('1', 'skill1');
       expect(userRepository.findOneOrFail).toHaveBeenCalled();
       expect(skillRepository.findOneOrFail).toHaveBeenCalled();
