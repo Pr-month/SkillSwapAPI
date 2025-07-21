@@ -8,15 +8,14 @@ import {
 
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { Skill } from 'src/skills/entities/skill.entity';
 import { Repository } from 'typeorm';
+import { configuration, IConfig } from '../config/configuration';
 import { CreateUsersDto } from './dto/create.users.dto';
+import { FindAllUsersResponseDto } from './dto/find-all-users-response.dto';
+import { FindAllUsersQueryDto } from './dto/find-all-users.dto';
 import { UpdateUsersDto } from './dto/update.users.dto';
 import { User } from './entities/users.entity';
-import { Skill } from 'src/skills/entities/skill.entity';
-import { FindUserDTO } from './dto/find.users.dto';
-import { configuration, IConfig } from '../config/configuration';
-import { FindAllUsersQueryDto } from './dto/find-all-users.dto';
-import { FindAllUsersResponseDto } from './dto/find-all-users-response.dto';
 
 @Injectable()
 export class UsersService {
