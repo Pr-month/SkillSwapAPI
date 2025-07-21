@@ -12,26 +12,16 @@ describe('CategoriesService', () => {
   let service: CategoriesService;
 
   let categoryRepository: {
+    create: jest.Mock;
     save: jest.Mock;
     find: jest.Mock;
     findOneOrFail: jest.Mock;
     delete: jest.Mock;
   };
 
-  const createCategoryDtoInput: CreateCategoryDto = {
-    name: 'Посадка огурцов',
-    parent: '1231',
-  };
-
-  const expectedSavedCategory = {
-    id: '1',
-    name: 'Посадка огурцов',
-    parent: { id: '1231' },
-    children: [],
-  };
-
   beforeEach(async () => {
     categoryRepository = {
+      create: jest.fn(),
       save: jest.fn(),
       find: jest.fn(),
       findOneOrFail: jest.fn(),
@@ -57,7 +47,23 @@ describe('CategoriesService', () => {
 
   describe('create', () => {
     it('успешное создание категории с родителем', async () => {
+      const createCategoryDtoInput: CreateCategoryDto = {
+        name: 'Посадка огурцов',
+        parent: '1231',
+      };
+
+      const expectedSavedCategory = {
+        id: '1',
+        name: 'Посадка огурцов',
+        parent: { id: '1231' },
+        children: [],
+      };
+
       categoryRepository.save.mockResolvedValue(expectedSavedCategory);
+      categoryRepository.create.mockReturnValue({
+        ...createCategoryDtoInput,
+        parent: { id: createCategoryDtoInput.parent },
+      });
       const result = await service.create(createCategoryDtoInput);
       expect(categoryRepository.save).toHaveBeenCalledWith({
         ...createCategoryDtoInput,
@@ -77,8 +83,9 @@ describe('CategoriesService', () => {
         parent: undefined,
         children: [],
       };
-
+      categoryRepository.create.mockReturnValue(createRootCategoryDto);
       categoryRepository.save.mockResolvedValue(expectedRootSavedCategory);
+
       const result = await service.create(createRootCategoryDto);
       expect(categoryRepository.save).toHaveBeenCalledWith(
         createRootCategoryDto,
@@ -205,7 +212,7 @@ describe('CategoriesService', () => {
     it('должен успешно обновить родительскую категорию на заданный ID', async () => {
       const parentId = '10';
       const updateDto: UpdateCategoryDto = {
-        name: 'Хотьба задом',
+        name: 'Категория для обновления',
         parent: parentId,
       };
 
@@ -252,7 +259,7 @@ describe('CategoriesService', () => {
         children: [],
       };
       const updateDto: UpdateCategoryDto = {
-        name: 'Хотьба задом',
+        name: 'Категория с родителем',
         parent: null,
       };
 
