@@ -29,6 +29,7 @@ export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
   @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Отправление запроса' })
   @UseGuards(AccessTokenGuard)
   @Post()
   create(@Req() req: AuthRequest, @Body() createRequestDto: CreateRequestDto) {
@@ -37,7 +38,7 @@ export class RequestsController {
 
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
-  @Get()
+  @Get('/incoming')
   @ApiOperation({ summary: 'Получение всех запросов' })
   @ApiResponse({
     status: 200,
@@ -45,6 +46,19 @@ export class RequestsController {
     type: FindAllRequestsResponseDto,
   })
   findAll(@Req() req: AuthRequest, @Query() query: FindRequestQueryDto) {
+    return this.requestsService.findAll(req.user.sub, query);
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(AccessTokenGuard)
+  @Get('/outgoing')
+  @ApiOperation({ summary: 'Получение всех запросов' })
+  @ApiResponse({
+    status: 200,
+    description: 'Список всех запросов',
+    type: FindAllRequestsResponseDto,
+  })
+  findAl(@Req() req: AuthRequest, @Query() query: FindRequestQueryDto) {
     return this.requestsService.findAll(req.user.sub, query);
   }
 

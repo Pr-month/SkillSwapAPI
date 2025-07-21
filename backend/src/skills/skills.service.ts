@@ -23,7 +23,9 @@ export class SkillsService {
   async create(userId: string, createSkillDto: CreateSkillDto) {
     return await this.skillRepository.save({
       ...createSkillDto,
-      category: { id: createSkillDto.category },
+      category: createSkillDto.category
+        ? { id: createSkillDto.category }
+        : null,
       owner: { id: userId },
       message: 'Навык создан',
     });
