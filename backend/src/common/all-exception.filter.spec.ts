@@ -64,6 +64,35 @@ describe('AllExceptionFilter', () => {
     });
   });
 
+  it('должен возвращать 400 при ошибке обязательного поля (23502)', () => {
+    const exception = {
+      code: '23502',
+      driverError: {
+        table: 'User',
+        column: 'email',
+      },
+    };
+    filter.catch(exception, mockHost);
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: 'Поле email в таблице User является обязательным',
+    });
+  });
+
+  it('должен возвращать 400 при ошибке обязательного поля без table/column (23502)', () => {
+    const exception = {
+      code: '23502',
+      driverError: {},
+    };
+    filter.catch(exception, mockHost);
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: 'Поле field в таблице Entity является обязательным',
+    });
+  });
+
   it('должен возвращать 404 при EntityNotFoundError', () => {
     const exception = new EntityNotFoundError('User', {});
     filter.catch(exception, mockHost);

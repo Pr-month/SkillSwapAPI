@@ -12,6 +12,7 @@ import * as path from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
+import { logger } from '../logger/mainLogger';
 
 @Injectable()
 export class SkillsService {
@@ -82,7 +83,10 @@ export class SkillsService {
       const absolutePath = path.join(process.cwd(), relativePath);
       unlink(absolutePath, (err) => {
         if (err) {
-          throw new BadRequestException('err');
+          logger.error(
+            `Ошибка при удалении изображения ${image} (skillId=${skillId}}`,
+            err,
+          );
         }
       });
     });
