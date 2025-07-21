@@ -38,15 +38,17 @@ export class RequestsController {
     description: 'Заявка успешно создана',
     type: Request,
   })
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Post()
   create(@Req() req: AuthRequest, @Body() createRequestDto: CreateRequestDto) {
     return this.requestsService.create(req.user.sub, createRequestDto);
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Get()
-  @ApiOperation({ summary: 'Получение всех  запросов' })
+  @ApiOperation({ summary: 'Получение всех запросов' })
   @ApiResponse({
     status: 200,
     description: 'Список всех запросов',
@@ -56,12 +58,14 @@ export class RequestsController {
     return this.requestsService.findAll(req.user.sub, query);
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Get(':id')
   findOne(@Req() req: AuthRequest, @Param('id') id: string) {
     return this.requestsService.findOne(req.user.sub, id, req.user.role);
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Patch(':id')
   read(@Param('id') id: string, @Body() updateDto: UpdateRequestDto) {

@@ -13,12 +13,13 @@ export class CategoriesService {
   ) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
-    const { parent, children } = createCategoryDto;
-    return await this.categoryRepository.save({
-      ...createCategoryDto,
-      parent: parent ? { id: parent } : undefined,
-      children: children.length > 0 ? children.map((id) => ({ id })) : [],
+    const { parent, ...rest } = createCategoryDto;
+
+    const category = this.categoryRepository.create({
+      ...rest,
+      parent: parent ? { id: parent } : null,
     });
+    return await this.categoryRepository.save(category);
   }
 
   async findAll(): Promise<Category[]> {
@@ -28,17 +29,21 @@ export class CategoriesService {
     });
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} category`;
-  }
-
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     const category = await this.categoryRepository.findOneOrFail({
       where: { id: id },
       relations: ['parent', 'children'],
     });
 
-    Object.assign(category, updateCategoryDto);
+    if (updateCategoryDto.name !== undefined) {
+      category.name = updateCategoryDto.name;
+    }
+
+    if (updateCategoryDto.parent !== undefined) {
+      category.parent = updateCategoryDto.parent
+        ? ({ id: updateCategoryDto.parent } as Category)
+        : null;
+    }
 
     return this.categoryRepository.save(category);
   }

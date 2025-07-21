@@ -28,7 +28,7 @@ export class Category {
 
   @ManyToOne(() => Category, (category) => category.children, {
     nullable: true,
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
   })
   @ApiProperty({
     nullable: true,

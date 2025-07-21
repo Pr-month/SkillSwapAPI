@@ -5,11 +5,11 @@ import {
   Get,
   Param,
   Patch,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
-import { FindUserDTO } from './dto/find.users.dto';
 import { UpdateUsersDto } from './dto/update.users.dto';
 import { UsersService } from './users.service';
 import { AuthRequest } from '../auth/types';
@@ -18,10 +18,14 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { User } from './entities/users.entity';
 import { RoleGuard } from '../auth/guards/role-guard.guard';
+import { FindAllUsersQueryDto } from './dto/find-all-users.dto';
+import { FindAllUsersResponseDto } from './dto/find-all-users-response.dto';
 
 @Controller('users')
 export class UsersController {
@@ -29,14 +33,43 @@ export class UsersController {
 
   @Get()
   @ApiOperation({ summary: 'Получение всех пользователей' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: String,
+    description: 'Номер страницы (строка с цифрами)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: String,
+    description: 'Лимит на страницу (строка с цифрами)',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Строка поиска по имени и email',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Список пользователей',
-    type: User,
-    isArray: true,
+    description: 'Список пользователей с пагинацией',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: getSchemaPath(User) },
+        },
+        page: { type: 'number', example: 1 },
+        totalPages: { type: 'number', example: 10 },
+      },
+    },
   })
-  findAll(): Promise<FindUserDTO[]> {
-    return this.usersService.findAll();
+  async findAll(
+    @Query() query: FindAllUsersQueryDto,
+  ): Promise<FindAllUsersResponseDto> {
+    return this.usersService.findAll(query);
   }
 
   @ApiBearerAuth('access-token')

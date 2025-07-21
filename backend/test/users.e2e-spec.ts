@@ -7,6 +7,7 @@ import { FindUserDTO } from '../src/users/dto/find.users.dto';
 import { AuthResponseDto } from '../src/auth/dto/AuthResponse.dto';
 import { AllExceptionFilter } from '../src/common/all-exception.filter';
 import { ConfigService } from '@nestjs/config';
+import { FindAllUsersResponseDto } from '../src/users/dto/find-all-users-response.dto';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
@@ -42,12 +43,12 @@ describe('UsersController (e2e)', () => {
 
   it('/GET users - получение всех пользователей', async () => {
     const res = await request(server).get('/users').expect(200);
-    const users = res.body as FindUserDTO[];
-    expect(users).toBeInstanceOf(Array);
-    if (users.length === 0) {
+    const users = res.body as FindAllUsersResponseDto;
+    expect(users.data).toBeInstanceOf(Array);
+    if (users.data.length === 0) {
       return;
     }
-    const user = users[0];
+    const user = users.data[0];
     expect(user).not.toHaveProperty('password');
     expect(user).not.toHaveProperty('refreshToken');
   });
