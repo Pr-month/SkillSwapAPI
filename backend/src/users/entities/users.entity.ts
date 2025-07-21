@@ -15,7 +15,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class User {
   @PrimaryGeneratedColumn('uuid')
   @ApiProperty({
-    example: 1,
+    example: '92230a55-a6e5-4c97-9ccf-31718e2adec3',
     description: 'Уникальный идентификатор пользователя',
   })
   id?: string;
@@ -56,7 +56,13 @@ export class User {
 
   // Навыки, созданные пользователем
   @OneToMany(() => Skill, (skill) => skill.owner)
-  @ApiProperty({ type: () => [Skill], description: 'Навыки пользователя' })
+  @ApiProperty({
+    type: () => [Skill],
+    description: 'Навыки пользователя',
+    example: [
+      { id: 'uuid', title: 'Название', description: 'Описание', images: [] },
+    ],
+  })
   skills: Skill[];
 
   // //отдельный entity для категорий
