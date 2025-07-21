@@ -8,7 +8,6 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
 import { NotFoundException } from '@nestjs/common';
 
-//todo
 describe('CategoriesService', () => {
   let service: CategoriesService;
 
@@ -22,7 +21,6 @@ describe('CategoriesService', () => {
   const createCategoryDtoInput: CreateCategoryDto = {
     name: 'Посадка огурцов',
     parent: '1231',
-    children: [],
   };
 
   const expectedSavedCategory = {
@@ -72,9 +70,8 @@ describe('CategoriesService', () => {
       const createRootCategoryDto: CreateCategoryDto = {
         name: 'Новая корневая категория',
         parent: undefined,
-        children: [],
       };
-      const expectedRootSavedCategory = {
+      const expectedRootSavedCategory: Category = {
         id: '1',
         name: 'Новая корневая категория',
         parent: undefined,
@@ -89,32 +86,32 @@ describe('CategoriesService', () => {
       expect(result).toEqual(expectedRootSavedCategory);
     });
 
-    it('успешное создание категории с указанными детьми', async () => {
-      const createCategoryWithChildrenDto: CreateCategoryDto = {
-        name: 'Подкатегория с детьми',
-        parent: undefined,
-        children: ['1', '2'],
-      };
+    // it('успешное создание категории с указанными детьми', async () => {
+    //   const createCategoryWithChildrenDto: CreateCategoryDto = {
+    //     name: 'Подкатегория с детьми',
+    //     parent: undefined,
+    //     children: ['1', '2'],
+    //   };
 
-      const expectedSavedCategoryWithChildren = {
-        id: '01',
-        name: 'Подкатегория с детьми',
-        parent: undefined,
-        children: [{ id: '1' }, { id: '2' }],
-      };
+    //   const expectedSavedCategoryWithChildren = {
+    //     id: '01',
+    //     name: 'Подкатегория с детьми',
+    //     parent: undefined,
+    //     children: [{ id: '1' }, { id: '2' }],
+    //   };
 
-      categoryRepository.save.mockResolvedValue(
-        expectedSavedCategoryWithChildren,
-      );
+    //   categoryRepository.save.mockResolvedValue(
+    //     expectedSavedCategoryWithChildren,
+    //   );
 
-      const result = await service.create(createCategoryWithChildrenDto);
-      expect(categoryRepository.save).toHaveBeenCalledWith({
-        ...createCategoryWithChildrenDto,
-        parent: undefined,
-        children: [{ id: '1' }, { id: '2' }],
-      });
-      expect(result).toEqual(expectedSavedCategoryWithChildren);
-    });
+    //   const result = await service.create(createCategoryWithChildrenDto);
+    //   expect(categoryRepository.save).toHaveBeenCalledWith({
+    //     ...createCategoryWithChildrenDto,
+    //     parent: undefined,
+    //     children: [{ id: '1' }, { id: '2' }],
+    //   });
+    //   expect(result).toEqual(expectedSavedCategoryWithChildren);
+    // });
   });
 
   describe('findAll', () => {
@@ -207,7 +204,10 @@ describe('CategoriesService', () => {
 
     it('должен успешно обновить родительскую категорию на заданный ID', async () => {
       const parentId = '10';
-      const updateDto: UpdateCategoryDto = { parent: parentId };
+      const updateDto: UpdateCategoryDto = {
+        name: 'Хотьба задом',
+        parent: parentId,
+      };
 
       const categoryFoundByFindOne: Category = {
         id: '1',
@@ -251,7 +251,10 @@ describe('CategoriesService', () => {
         parent: { id: '5', name: 'Существующий родитель' } as Category,
         children: [],
       };
-      const updateDto: UpdateCategoryDto = { parent: null };
+      const updateDto: UpdateCategoryDto = {
+        name: 'Хотьба задом',
+        parent: null,
+      };
 
       const expectedCategoryAfterSave: Category = {
         id: '1',
@@ -281,50 +284,50 @@ describe('CategoriesService', () => {
       expect(result).toEqual(expectedCategoryAfterSave);
     });
 
-    it('должен успешно обновить дочерние категории', async () => {
-      const childIds = ['20', '21'];
-      const updateDto: UpdateCategoryDto = { children: childIds };
+    // it('должен успешно обновить дочерние категории', async () => {
+    //   const childIds = ['20', '21'];
+    //   const updateDto: UpdateCategoryDto = { children: childIds };
 
-      const categoryFoundByFindOne: Category = {
-        id: '1',
-        name: 'Категория без детей',
-        parent: null,
-        children: [],
-      };
+    //   const categoryFoundByFindOne: Category = {
+    //     id: '1',
+    //     name: 'Категория без детей',
+    //     parent: null,
+    //     children: [],
+    //   };
 
-      const categoryToSaveWithNewChildren: Category = {
-        id: '1',
-        name: 'Категория без детей',
-        parent: null,
-        children: [{ id: '20' } as Category, { id: '21' } as Category],
-      };
+    //   const categoryToSaveWithNewChildren: Category = {
+    //     id: '1',
+    //     name: 'Категория без детей',
+    //     parent: null,
+    //     children: [{ id: '20' } as Category, { id: '21' } as Category],
+    //   };
 
-      const expectedCategoryAfterSave: Category = {
-        id: '1',
-        name: 'Категория без детей',
-        parent: null,
-        children: [{ id: '20' } as Category, { id: '21' } as Category],
-      };
+    //   const expectedCategoryAfterSave: Category = {
+    //     id: '1',
+    //     name: 'Категория без детей',
+    //     parent: null,
+    //     children: [{ id: '20' } as Category, { id: '21' } as Category],
+    //   };
 
-      categoryRepository.findOneOrFail.mockResolvedValue(
-        categoryFoundByFindOne,
-      );
-      categoryRepository.save.mockResolvedValue(expectedCategoryAfterSave);
+    //   categoryRepository.findOneOrFail.mockResolvedValue(
+    //     categoryFoundByFindOne,
+    //   );
+    //   categoryRepository.save.mockResolvedValue(expectedCategoryAfterSave);
 
-      const result = await service.update(
-        categoryFoundByFindOne.id!,
-        updateDto,
-      );
+    //   const result = await service.update(
+    //     categoryFoundByFindOne.id!,
+    //     updateDto,
+    //   );
 
-      expect(categoryRepository.findOneOrFail).toHaveBeenCalledWith({
-        where: { id: categoryFoundByFindOne.id },
-        relations: ['parent', 'children'],
-      });
-      expect(categoryRepository.save).toHaveBeenCalledWith(
-        categoryToSaveWithNewChildren,
-      );
-      expect(result).toEqual(expectedCategoryAfterSave);
-    });
+    //   expect(categoryRepository.findOneOrFail).toHaveBeenCalledWith({
+    //     where: { id: categoryFoundByFindOne.id },
+    //     relations: ['parent', 'children'],
+    //   });
+    //   expect(categoryRepository.save).toHaveBeenCalledWith(
+    //     categoryToSaveWithNewChildren,
+    //   );
+    //   expect(result).toEqual(expectedCategoryAfterSave);
+    // });
 
     it('должен выбросить ошибку NotFoundException, если категория не найдена', async () => {
       const nonExistentId = 'id';

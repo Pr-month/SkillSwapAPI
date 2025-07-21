@@ -45,12 +45,6 @@ export class CategoriesService {
         : null;
     }
 
-    if (updateCategoryDto.children !== undefined) {
-      category.children = updateCategoryDto.children.map((childId) => ({
-        id: childId,
-      })) as Category[];
-    }
-
     return this.categoryRepository.save(category);
   }
 
