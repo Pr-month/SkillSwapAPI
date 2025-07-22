@@ -6,14 +6,6 @@ import { IsUUID } from 'class-validator';
 
 @Entity()
 export class Skill {
-  @IsUUID()
-  @PrimaryGeneratedColumn('uuid')
-  @ApiProperty({
-    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
-    description: 'Уникальный идентификатор навыка',
-  })
-  id: string;
-
   @Column()
   @ApiProperty({ example: 'Читать', description: 'Название навыка' })
   title: string;
@@ -23,7 +15,11 @@ export class Skill {
   description: string;
 
   @ManyToOne(() => Category, { eager: true })
-  category: Category | null;
+  @ApiProperty({
+    example: { id: '20f7fcd7-c12d-4a5d-8fba-d2bd9a137108' },
+    description: 'id выбранной категории для навыка',
+  })
+  category: Category;
 
   @Column('text', { array: true, nullable: true })
   @ApiProperty({
@@ -36,5 +32,18 @@ export class Skill {
     nullable: true,
     onDelete: 'CASCADE',
   })
+  @ApiProperty({
+    type: () => User,
+    example: { id: '20f7fcd7-c12d-4a5d-8fba-d2bd9a137108' },
+    description: 'id пользователя',
+  })
   owner: User;
+
+  @IsUUID()
+  @PrimaryGeneratedColumn('uuid')
+  @ApiProperty({
+    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
+    description: 'Уникальный идентификатор навыка',
+  })
+  id: string;
 }

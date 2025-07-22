@@ -15,6 +15,7 @@ import { IConfig } from '../config/configuration';
 export class AllExceptionFilter implements ExceptionFilter {
   constructor(private readonly config: Pick<IConfig, 'upload'>) {}
   catch(exception: unknown, host: ArgumentsHost) {
+    console.error('Unhandled Exception:', exception);
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     if (

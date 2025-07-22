@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
@@ -23,8 +24,10 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
+import { UserPasswordFilter } from '../common/userPassword.filter';
 
 @Controller('requests')
+@UseInterceptors(UserPasswordFilter)
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 

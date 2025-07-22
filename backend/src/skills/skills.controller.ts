@@ -10,6 +10,7 @@ import {
   Req,
   Query,
   HttpCode,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FindSkillsQueryDto } from './dto/find-skill.dto';
 import { SkillsService } from './skills.service';
@@ -27,8 +28,10 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { Skill } from './entities/skill.entity';
+import { UserPasswordFilter } from '../common/userPassword.filter';
 
 @Controller('skills')
+@UseInterceptors(UserPasswordFilter)
 export class SkillsController {
   constructor(
     private readonly skillsService: SkillsService,

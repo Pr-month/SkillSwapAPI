@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsArray,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsArray, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateSkillDto {
   @IsString()
@@ -19,7 +13,11 @@ export class CreateSkillDto {
   description: string;
 
   @IsUUID()
-  @IsOptional()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: '20f7fcd7-c12d-4a5d-8fba-d2bd9a137108',
+    description: 'id выбранной категори для навыка',
+  })
   category: string;
 
   @IsArray()
