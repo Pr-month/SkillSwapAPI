@@ -12,7 +12,6 @@ import { Gender, UserRole } from '../users/enums';
 const mockSkillRepository = () => ({
   save: jest.fn(),
   createQueryBuilder: jest.fn(),
-  findOne: jest.fn(),
   delete: jest.fn(),
   findOneOrFail: jest.fn(),
 });
@@ -117,16 +116,23 @@ describe('SkillsService', () => {
 
   describe('update', () => {
     it('должен успешно обновить навык', async () => {
-      jest.spyOn(service, 'userIsOwner').mockResolvedValue(fakeSkill);
-      skillRepository.save.mockResolvedValue({
+      const updatedSkill = {
         ...fakeSkill,
         title: 'Обновлённое имя',
         description: 'Обновлённое описание',
-      });
+      };
+      jest.spyOn(service, 'userIsOwner').mockResolvedValue(fakeSkill);
+      skillRepository.save.mockResolvedValue(updatedSkill);
+      jest.spyOn(service, 'findFullSkill').mockResolvedValue(updatedSkill);
       const result = await service.update('user1', '1', {
         title: 'Обновлённое имя',
+        description: 'Обновлённое описание',
       });
       expect(result).toHaveProperty('title', 'Обновлённое имя');
+      expect(result).toHaveProperty('description', 'Обновлённое описание');
+
+      jest.spyOn(service, 'userIsOwner').mockRestore();
+      jest.spyOn(service, 'findFullSkill').mockRestore();
     });
 
     it('должен выбросить ошибку если пользователь не владелец', async () => {
@@ -136,6 +142,8 @@ describe('SkillsService', () => {
       await expect(
         service.update('user2', '1', { title: 'не важно' }),
       ).rejects.toThrow(ForbiddenException);
+
+      jest.spyOn(service, 'userIsOwner').mockRestore();
     });
 
     it('должен выбросить ошибку если навык не найден', async () => {
@@ -145,6 +153,8 @@ describe('SkillsService', () => {
       await expect(
         service.update('user1', 'notfound', { title: 'не важно' }),
       ).rejects.toThrow(NotFoundException);
+
+      jest.spyOn(service, 'userIsOwner').mockRestore();
     });
   });
 
@@ -154,6 +164,8 @@ describe('SkillsService', () => {
       skillRepository.delete.mockResolvedValue({});
       const result = await service.remove(fakeSkill.id, fakeSkill.owner.id);
       expect(result).toHaveProperty('message');
+
+      jest.spyOn(service, 'userIsOwner').mockRestore();
     });
 
     it('должен выбросить ошибку при невалидном UUID', async () => {
@@ -169,12 +181,14 @@ describe('SkillsService', () => {
       await expect(
         service.remove('1b4e28ba-2fa1-11d2-883f-0016d3cca427', 'user2'),
       ).rejects.toThrow(ForbiddenException);
+
+      jest.spyOn(service, 'userIsOwner').mockRestore();
     });
   });
 
   describe('userIsOwner', () => {
     it('должен вернуть навык если пользователь владелец', async () => {
-      skillRepository.findOne.mockResolvedValue(fakeSkill);
+      skillRepository.findOneOrFail.mockResolvedValue(fakeSkill);
       const result = await service.userIsOwner(
         fakeSkill.id,
         fakeSkill.owner.id,
@@ -183,14 +197,16 @@ describe('SkillsService', () => {
     });
 
     it('должен выбросить ошибку если навык не найден', async () => {
-      skillRepository.findOne.mockResolvedValue(null);
+      skillRepository.findOneOrFail.mockRejectedValue(
+        new Error('Навык не найден'),
+      );
       await expect(service.userIsOwner('1', 'user1')).rejects.toThrow(
-        NotFoundException,
+        'Навык не найден',
       );
     });
 
     it('должен выбросить ошибку если пользователь не владелец', async () => {
-      skillRepository.findOne.mockResolvedValue(fakeSkill);
+      skillRepository.findOneOrFail.mockResolvedValue(fakeSkill);
       await expect(service.userIsOwner(fakeSkill.id, 'user2')).rejects.toThrow(
         ForbiddenException,
       );
