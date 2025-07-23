@@ -15,8 +15,8 @@ export class CreateSkillDto {
   @IsUUID()
   @IsNotEmpty()
   @ApiProperty({
-    example: '3f2a1b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o',
-    description: 'ID категории навыка',
+    example: '20f7fcd7-c12d-4a5d-8fba-d2bd9a137108',
+    description: 'id выбранной категори для навыка',
   })
   category: string;
 

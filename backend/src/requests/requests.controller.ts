@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
@@ -23,9 +24,10 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
-import { Request } from './entities/request.entity';
+import { UserPasswordFilter } from '../common/userPassword.filter';
 
 @Controller('requests')
+@UseInterceptors(UserPasswordFilter)
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
   @ApiBearerAuth('access-token')
@@ -39,6 +41,7 @@ export class RequestsController {
     type: Request,
   })
   @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Отправление запроса' })
   @UseGuards(AccessTokenGuard)
   @Post()
   create(@Req() req: AuthRequest, @Body() createRequestDto: CreateRequestDto) {
@@ -47,7 +50,7 @@ export class RequestsController {
 
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
-  @Get()
+  @Get('/incoming')
   @ApiOperation({ summary: 'Получение всех запросов' })
   @ApiResponse({
     status: 200,
@@ -55,6 +58,19 @@ export class RequestsController {
     type: FindAllRequestsResponseDto,
   })
   findAll(@Req() req: AuthRequest, @Query() query: FindRequestQueryDto) {
+    return this.requestsService.findAll(req.user.sub, query);
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(AccessTokenGuard)
+  @Get('/outgoing')
+  @ApiOperation({ summary: 'Получение всех запросов' })
+  @ApiResponse({
+    status: 200,
+    description: 'Список всех запросов',
+    type: FindAllRequestsResponseDto,
+  })
+  findAl(@Req() req: AuthRequest, @Query() query: FindRequestQueryDto) {
     return this.requestsService.findAll(req.user.sub, query);
   }
 

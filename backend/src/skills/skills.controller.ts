@@ -1,38 +1,41 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
-  Req,
-  Query,
+  Get,
   HttpCode,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { FindSkillsQueryDto } from './dto/find-skill.dto';
-import { SkillsService } from './skills.service';
-import { UsersService } from 'src/users/users.service';
-import { CreateSkillDto } from './dto/create-skill.dto';
-import { UpdateSkillDto } from './dto/update-skill.dto';
-import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
-import { AuthRequest } from 'src/auth/types';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiResponse,
-  ApiParam,
   getSchemaPath,
 } from '@nestjs/swagger';
+import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
+import { AuthRequest } from 'src/auth/types';
+import { UsersService } from 'src/users/users.service';
+import { UserPasswordFilter } from '../common/userPassword.filter';
+import { CreateSkillDto } from './dto/create-skill.dto';
+import { FindSkillsQueryDto } from './dto/find-skill.dto';
 import {
   ResponseSkillDto,
   ResponseSkillWithMessageDto,
 } from './dto/response-skill.dto';
+import { UpdateSkillDto } from './dto/update-skill.dto';
+import { SkillsService } from './skills.service';
 
 @Controller('skills')
+@UseInterceptors(UserPasswordFilter)
 export class SkillsController {
   constructor(
     private readonly skillsService: SkillsService,
