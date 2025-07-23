@@ -10,7 +10,8 @@ export class CreateRequestDto extends PartialType(Request) {
   @IsNotEmpty()
   @ApiProperty({
     example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
-    description: 'Уникальный идентификатор предлагаемого навыка',
+    description:
+      'Уникальный идентификатор навыка, который предлагает отправитель',
   })
   offeredSkillId: string;
 
@@ -18,7 +19,8 @@ export class CreateRequestDto extends PartialType(Request) {
   @IsNotEmpty()
   @ApiProperty({
     example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
-    description: 'Уникальный идентификатор предлагаемого навыка',
+    description:
+      'Уникальный идентификатор навыка, который отправитель хочет получить',
   })
   requestedSkillId: string;
 }

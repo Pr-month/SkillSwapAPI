@@ -8,15 +8,14 @@ import {
 
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { Skill } from 'src/skills/entities/skill.entity';
 import { Repository } from 'typeorm';
+import { configuration, IConfig } from '../config/configuration';
 import { CreateUsersDto } from './dto/create.users.dto';
+import { FindAllUsersResponseDto } from './dto/find-all-users-response.dto';
+import { FindAllUsersQueryDto } from './dto/find-all-users.dto';
 import { UpdateUsersDto } from './dto/update.users.dto';
 import { User } from './entities/users.entity';
-import { Skill } from 'src/skills/entities/skill.entity';
-import { NotificationsGateway } from 'src/notifications/notifications.gateway';
-import { configuration, IConfig } from '../config/configuration';
-import { FindAllUsersQueryDto } from './dto/find-all-users.dto';
-import { FindAllUsersResponseDto } from './dto/find-all-users-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -25,7 +24,6 @@ export class UsersService {
     @InjectRepository(Skill) private skillRepository: Repository<Skill>,
     @Inject(configuration.KEY)
     private readonly config: IConfig,
-    private notificationsGateway: NotificationsGateway,
   ) {}
   async create(createUserDto: CreateUsersDto) {
     const user = (await this.userRepository.save(createUserDto)) as User;
@@ -88,7 +86,7 @@ export class UsersService {
     await this.userRepository.update(id, updateUserDto);
     const updatedUser = await this.userRepository.findOneOrFail({
       where: { id },
-      relations: ['skills'],
+      relations: ['skills', 'skills.category'],
     });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, refreshToken, ...userWithoutPassword } = updatedUser;

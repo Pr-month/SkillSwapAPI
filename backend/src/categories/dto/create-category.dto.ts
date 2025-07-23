@@ -25,5 +25,5 @@ export class CreateCategoryDto {
     example: '80316101-cc6a-4bbd-a412-7ebaef2da1e8',
     description: 'Id родительской категории',
   })
-  parent?: string;
+  parent?: string | null;
 }

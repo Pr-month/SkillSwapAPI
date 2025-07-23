@@ -30,7 +30,16 @@ import { UserPasswordFilter } from '../common/userPassword.filter';
 @UseInterceptors(UserPasswordFilter)
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
-
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Создание заявки',
+    description: 'Создать заявку может только авторизованный пользователь',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Заявка успешно создана',
+    type: Request,
+  })
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Отправление запроса' })
   @UseGuards(AccessTokenGuard)

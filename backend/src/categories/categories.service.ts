@@ -35,7 +35,15 @@ export class CategoriesService {
       relations: ['parent', 'children'],
     });
 
-    Object.assign(category, updateCategoryDto);
+    if (updateCategoryDto.name !== undefined) {
+      category.name = updateCategoryDto.name;
+    }
+
+    if (updateCategoryDto.parent !== undefined) {
+      category.parent = updateCategoryDto.parent
+        ? ({ id: updateCategoryDto.parent } as Category)
+        : null;
+    }
 
     return this.categoryRepository.save(category);
   }

@@ -14,6 +14,7 @@ const mockSkillRepository = () => ({
   createQueryBuilder: jest.fn(),
   findOne: jest.fn(),
   delete: jest.fn(),
+  findOneOrFail: jest.fn(),
 });
 
 const fakeSkill = {
@@ -193,6 +194,16 @@ describe('SkillsService', () => {
       await expect(service.userIsOwner(fakeSkill.id, 'user2')).rejects.toThrow(
         ForbiddenException,
       );
+    });
+  });
+
+  describe('findFullSkill', () => {
+    it('должен вернуть навык с данными о категории и ее родителе, о владельце навыка', async () => {
+      skillRepository.findOneOrFail.mockResolvedValue(fakeSkill);
+      const result = await service.findFullSkill(fakeSkill.id);
+      expect(result).toHaveProperty('category');
+      expect(result).toHaveProperty('owner');
+      expect(result).toHaveProperty('category.parent');
     });
   });
 });
