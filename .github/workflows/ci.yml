@@ -31,7 +31,7 @@ jobs:
 
   unit-tests:
     name: Run Unit Tests (only on main)
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -54,7 +54,7 @@ jobs:
 
   e2e-tests:
     name: Run E2E Tests (only on main)
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     services:
