@@ -1,14 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { SkillsService } from './skills.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Skill } from './entities/skill.entity';
 import {
   BadRequestException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { Gender, UserRole } from '../users/enums';
-import { EntityNotFoundError } from 'typeorm';
+import { Skill } from './entities/skill.entity';
+import { SkillsService } from './skills.service';
 
 const mockSkillRepository = () => ({
   save: jest.fn(),
