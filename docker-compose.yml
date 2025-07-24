@@ -1,0 +1,87 @@
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./docker/volumes
+
+  # backend_data:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     o: bind
+  #     device: ./src
+
+  # frontend_data:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     o: bind
+  #     device: ./frontend
+
+services:
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile.frontend
+  #   container_name: frontend 
+  #   ports:
+  #     - "8080:80"
+  #   environment:
+  #     - NODE_ENV=development
+  #   networks:
+  #     - skill_swap
+  #   depends_on:
+  #     - backend
+
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile.backend
+  #   container_name: backend
+  #   environment:
+  #     # DB
+  #     DATABASE_HOST: postgres
+  #     DATABASE_PORT: ${INTERIOR_DATABASE_PORT}
+  #     DATABASE_NAME: ${DATABASE_NAME}
+  #     DATABASE_USER: ${DATABASE_USER}
+  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+  #     # JWT
+  #     JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN}
+  #     JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+  #     JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+  #     JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      
+  #     # other
+  #     PORT: ${PORT}
+  #   ports:
+  #     - 3000:${PORT}
+  #   depends_on:
+  #     - postgres
+  #   volumes:
+  #     - backend_data:/app/src
+  #   networks:
+  #     - skill_swap
+
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+      PGPORT: ${INTERIOR_DATABASE_PORT}
+    ports:
+      - ${EXTERNAL_DATABASE_PORT}:${INTERIOR_DATABASE_PORT}
+    restart: always
+    networks:
+      - skill_swap
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      
+
+networks:
+  skill_swap:
+    external: false
