@@ -105,6 +105,14 @@ describe('CategoriesController (e2e)', () => {
       .expect(403);
   });
 
+  it('/POST categories - категория с таким названием уже существует (409)', async () => {
+    await request(server)
+      .post('/categories')
+      .auth(accessTokenAdmin, { type: 'bearer' })
+      .send({ name: 'testCategory' })
+      .expect(409);
+  });
+
   it('/PATCH categories/:id - обновление категории', async () => {
     const res = await request(server)
       .patch(`/categories/${categoryId}`)
