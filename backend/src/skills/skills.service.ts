@@ -12,6 +12,7 @@ import * as path from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
+import { logger } from '../logger/mainLogger';
 
 @Injectable()
 export class SkillsService {
@@ -20,12 +21,16 @@ export class SkillsService {
   ) {}
 
   async create(userId: string, createSkillDto: CreateSkillDto) {
-    return await this.skillRepository.save({
+    const skill = await this.skillRepository.save({
       ...createSkillDto,
       category: { id: createSkillDto.category },
       owner: { id: userId },
-      message: 'Навык создан',
     });
+
+    return {
+      ...(await this.findFullSkill(skill.id)),
+      message: 'Навык создан',
+    };
   }
 
   async find(query: { page?: string; limit?: string; search?: string }) {
@@ -66,10 +71,15 @@ export class SkillsService {
       ? { id: updateSkillDto.category }
       : skill.category;
 
-    return await this.skillRepository.save({
+    const updatedSkill = await this.skillRepository.save({
+      ...skill,
       ...updateSkillDto,
       category,
     });
+
+    return {
+      ...(await this.findFullSkill(updatedSkill.id)),
+    };
   }
 
   async remove(skillId: string, userId: string) {
@@ -82,7 +92,10 @@ export class SkillsService {
       const absolutePath = path.join(process.cwd(), relativePath);
       unlink(absolutePath, (err) => {
         if (err) {
-          throw new BadRequestException('err');
+          logger.error(
+            `Ошибка при удалении изображения ${image} (skillId=${skillId}}`,
+            err,
+          );
         }
       });
     });
@@ -91,16 +104,23 @@ export class SkillsService {
   }
 
   async userIsOwner(skillId: string, userId: string) {
-    const skill = await this.skillRepository.findOne({
+    const skill = await this.skillRepository.findOneOrFail({
       where: { id: skillId },
-      relations: ['owner'],
+      relations: ['owner', 'category'],
     });
-    if (!skill) throw new NotFoundException('Навык не найден');
     if (skill.owner.id !== userId) {
       throw new ForbiddenException(
-        `Пользователь ${userId} пытается обновить навык ${skillId}, которым не владеет`,
+        `Пользователь ${userId} не владеет навыком ${skillId}`,
       );
     }
+    return skill;
+  }
+
+  async findFullSkill(skillId: string) {
+    const skill = await this.skillRepository.findOneOrFail({
+      where: { id: skillId },
+      relations: ['owner', 'category', 'category.parent'],
+    });
     return skill;
   }
 }

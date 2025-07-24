@@ -1,19 +1,20 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { SkillsService } from './skills.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Skill } from './entities/skill.entity';
 import {
   BadRequestException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { Gender, UserRole } from '../users/enums';
+import { Skill } from './entities/skill.entity';
+import { SkillsService } from './skills.service';
 
 const mockSkillRepository = () => ({
   save: jest.fn(),
   createQueryBuilder: jest.fn(),
   findOne: jest.fn(),
   delete: jest.fn(),
+  findOneOrFail: jest.fn(),
 });
 
 const fakeSkill = {
@@ -116,18 +117,38 @@ describe('SkillsService', () => {
 
   describe('update', () => {
     it('должен успешно обновить навык', async () => {
+      // 1. Мокируем userIsOwner
       jest.spyOn(service, 'userIsOwner').mockResolvedValue(fakeSkill);
-      skillRepository.save.mockResolvedValue({
+
+      // 2. Мокируем save
+      const updatedSkillFromSave = {
         ...fakeSkill,
         title: 'Обновлённое имя',
         description: 'Обновлённое описание',
-      });
+      };
+      skillRepository.save.mockResolvedValue(updatedSkillFromSave);
+
+      // 3. Мокируем findOneOrFail для findFullSkill
+      const fullSkillToReturn = {
+        ...updatedSkillFromSave,
+        owner: { id: 'user1' },
+        category: { id: 'category1', parent: null },
+      };
+      skillRepository.findOneOrFail.mockResolvedValue(fullSkillToReturn);
+
       const result = await service.update('user1', '1', {
         title: 'Обновлённое имя',
       });
+
+      // Проверяем что findFullSkill был вызван с правильным ID
+      expect(skillRepository.findOneOrFail).toHaveBeenCalledWith({
+        where: { id: fakeSkill.id },
+        relations: ['owner', 'category', 'category.parent'],
+      });
+
+      // Проверяем результат
       expect(result).toHaveProperty('title', 'Обновлённое имя');
     });
-
     it('должен выбросить ошибку если пользователь не владелец', async () => {
       jest.spyOn(service, 'userIsOwner').mockImplementation(() => {
         throw new ForbiddenException();
@@ -173,26 +194,55 @@ describe('SkillsService', () => {
 
   describe('userIsOwner', () => {
     it('должен вернуть навык если пользователь владелец', async () => {
-      skillRepository.findOne.mockResolvedValue(fakeSkill);
+      skillRepository.findOneOrFail.mockResolvedValue({
+        ...fakeSkill,
+        owner: { id: fakeSkill.owner.id },
+        category: fakeSkill.category || null,
+      });
+
       const result = await service.userIsOwner(
         fakeSkill.id,
         fakeSkill.owner.id,
       );
+
+      expect(skillRepository.findOneOrFail).toHaveBeenCalledWith({
+        where: { id: fakeSkill.id },
+        relations: ['owner', 'category'],
+      });
+
       expect(result).toHaveProperty('id', fakeSkill.id);
     });
 
-    it('должен выбросить ошибку если навык не найден', async () => {
-      skillRepository.findOne.mockResolvedValue(null);
-      await expect(service.userIsOwner('1', 'user1')).rejects.toThrow(
-        NotFoundException,
-      );
+    it('должен бросить исключение если пользователь не владелец', async () => {
+      const notOwnerId = 'not-owner-id';
+
+      skillRepository.findOneOrFail.mockResolvedValue({
+        ...fakeSkill,
+        owner: { id: fakeSkill.owner.id },
+        category: fakeSkill.category || null,
+      });
+
+      await expect(service.userIsOwner(fakeSkill.id, notOwnerId))
+        .rejects
+        .toThrow(ForbiddenException);
     });
 
-    it('должен выбросить ошибку если пользователь не владелец', async () => {
-      skillRepository.findOne.mockResolvedValue(fakeSkill);
-      await expect(service.userIsOwner(fakeSkill.id, 'user2')).rejects.toThrow(
-        ForbiddenException,
-      );
+    it('должен выбросить ошибку если навык не найден', async () => {
+      skillRepository.findOneOrFail.mockRejectedValue(new NotFoundException('Skill', '1'));
+
+      await expect(service.userIsOwner('1', 'user1'))
+        .rejects
+        .toThrow(NotFoundException);
+    });
+  });
+
+  describe('findFullSkill', () => {
+    it('должен вернуть навык с данными о категории и ее родителе, о владельце навыка', async () => {
+      skillRepository.findOneOrFail.mockResolvedValue(fakeSkill);
+      const result = await service.findFullSkill(fakeSkill.id);
+      expect(result).toHaveProperty('category');
+      expect(result).toHaveProperty('owner');
+      expect(result).toHaveProperty('category.parent');
     });
   });
 });

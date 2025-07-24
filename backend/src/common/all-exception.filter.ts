@@ -46,6 +46,30 @@ export class AllExceptionFilter implements ExceptionFilter {
       });
     }
 
+    if (
+      typeof exception === 'object' &&
+      exception !== null &&
+      'code' in exception &&
+      exception.code === '23502'
+    ) {
+      const driverError = (exception as unknown as QueryFailedError)
+        .driverError as {
+        detail?: string;
+        table?: string;
+        column?: string;
+      };
+
+      const table = driverError?.table ?? 'Entity';
+      const column = driverError?.column ?? 'field';
+
+      const message = `Поле ${column} в таблице ${table} является обязательным`;
+
+      return response.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message,
+      });
+    }
+
     if (exception instanceof EntityNotFoundError) {
       return response.status(HttpStatus.NOT_FOUND).json({
         statusCode: HttpStatus.NOT_FOUND,

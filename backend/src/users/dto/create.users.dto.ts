@@ -17,7 +17,7 @@ export class CreateUsersDto extends PartialType(User) {
   @IsUUID()
   @IsNotEmpty()
   @ApiProperty({
-    example: 1,
+    example: '92230a55-a6e5-4c97-9ccf-31718e2adec3',
     description: 'Уникальный идентификатор пользователя',
   })
   id: string;

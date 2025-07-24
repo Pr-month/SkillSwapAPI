@@ -28,7 +28,7 @@ export class Category {
 
   @ManyToOne(() => Category, (category) => category.children, {
     nullable: true,
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
   })
   @ApiProperty({
     nullable: true,
@@ -40,10 +40,10 @@ export class Category {
   @OneToMany(() => Category, (category) => category.parent, {
     cascade: ['insert'],
   })
-  @ApiProperty({
-    type: () => [Category],
-    description: 'Дочерние категории',
-    example: [],
-  })
+  // @ApiProperty({
+  //   type: () => [Category],
+  //   description: 'Дочерние категории',
+  //   example: [],
+  // })
   children?: Category[];
 }

@@ -24,12 +24,12 @@
     "seed:users": "npm run seed -- src/scripts/users.seed.ts",
     "seed:categories": "npm run seed -- src/scripts/categories.seed.ts",
     "seeding": "npm run seed:users && npm run seed:categories",
-    "seed:test": "npm run seed:test:local -- src/scripts/categories.seed.ts && cross-env DROP_SCHEMA=false npm run seed:test:local -- src/scripts/test.seed.ts",
+    "seed:test": "cross-env DROP_SCHEMA=true npm run seed:test:local -- src/scripts/categories.seed.ts && cross-env DROP_SCHEMA=false npm run seed:test:local -- src/scripts/test.seed.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "dotenv -e .env.test.local -- cross-env DROP_SCHEMA=true npm run seed:test && dotenv -e .env.test.local -- jest --config ./test/jest-e2e.json --detectOpenHandles"
+    "test:e2e": "dotenv -e .env.test.local npm run seed:test && dotenv -e .env.test.local -- jest --config ./test/jest-e2e.json --detectOpenHandles"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -39,6 +39,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.4",
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/typeorm": "^11.0.0",
     "bcrypt": "^6.0.0",

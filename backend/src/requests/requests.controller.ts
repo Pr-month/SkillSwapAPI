@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
@@ -23,20 +24,34 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
+import { UserPasswordFilter } from '../common/userPassword.filter';
 
 @Controller('requests')
+@UseInterceptors(UserPasswordFilter)
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
-
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Создание заявки',
+    description: 'Создать заявку может только авторизованный пользователь',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Заявка успешно создана',
+    type: Request,
+  })
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Отправление запроса' })
   @UseGuards(AccessTokenGuard)
   @Post()
   create(@Req() req: AuthRequest, @Body() createRequestDto: CreateRequestDto) {
     return this.requestsService.create(req.user.sub, createRequestDto);
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
-  @Get()
-  @ApiOperation({ summary: 'Получение всех  запросов' })
+  @Get('/incoming')
+  @ApiOperation({ summary: 'Получение всех запросов' })
   @ApiResponse({
     status: 200,
     description: 'Список всех запросов',
@@ -46,12 +61,27 @@ export class RequestsController {
     return this.requestsService.findAll(req.user.sub, query);
   }
 
+  @ApiBearerAuth('access-token')
+  @UseGuards(AccessTokenGuard)
+  @Get('/outgoing')
+  @ApiOperation({ summary: 'Получение всех запросов' })
+  @ApiResponse({
+    status: 200,
+    description: 'Список всех запросов',
+    type: FindAllRequestsResponseDto,
+  })
+  findAl(@Req() req: AuthRequest, @Query() query: FindRequestQueryDto) {
+    return this.requestsService.findAll(req.user.sub, query);
+  }
+
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Get(':id')
   findOne(@Req() req: AuthRequest, @Param('id') id: string) {
     return this.requestsService.findOne(req.user.sub, id, req.user.role);
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Patch(':id')
   read(@Param('id') id: string, @Body() updateDto: UpdateRequestDto) {
