@@ -5,10 +5,10 @@ import {
   Body,
   Patch,
   Param,
+  Delete,
   Req,
   UseGuards,
   Query,
-  UseInterceptors,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
@@ -28,10 +28,8 @@ import {
 import { Request } from './entities/request.entity';
 import { RequestStatus, RequestType } from './enums';
 import { FindOneRequestDto } from './dto/find-one-requst.dto';
-import { UserPasswordFilter } from '../common/userPassword.filter';
 
 @Controller('requests')
-@UseInterceptors(UserPasswordFilter)
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
   @ApiBearerAuth('access-token')
@@ -45,17 +43,6 @@ export class RequestsController {
     type: Request,
   })
   @ApiBearerAuth('access-token')
-  @ApiOperation({
-    summary: 'Создание заявки',
-    description: 'Создать заявку может только авторизованный пользователь',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Заявка успешно создана',
-    type: Request,
-  })
-  @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Отправление заявки' })
   @UseGuards(AccessTokenGuard)
   @Post()
   create(@Req() req: AuthRequest, @Body() createRequestDto: CreateRequestDto) {
@@ -150,17 +137,9 @@ export class RequestsController {
 
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
-  @Patch(':id/accept')
-  @ApiOperation({ summary: 'Возможность принять заявку' })
-  rad(@Param('id') id: string, @Body() updateDto: UpdateRequestDto) {
-    return this.requestsService.update(id, updateDto);
-  }
-
-  @ApiBearerAuth('access-token')
-  @UseGuards(AccessTokenGuard)
-  @Patch(':id/reject')
+  @Delete(':id')
   @ApiOperation({
-    summary: 'Отклонение заявки',
+    summary: 'Удаление заявки',
     description:
       'Пользователь может удалить только свою исходящую заявку, в противном случае вернётся ошибка 403. Админ может удалить любую заявку.',
   })
