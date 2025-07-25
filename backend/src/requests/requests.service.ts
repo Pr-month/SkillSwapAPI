@@ -204,11 +204,17 @@ export class RequestsService {
     };
   }
 
-  async update(id: string, dto: UpdateRequestDto) {
+  async update(id: string, dto: UpdateRequestDto, user: JwtPayload) {
     const request = await this.requestRepository.findOneOrFail({
       where: { id },
       relations: ['sender', 'receiver', 'offeredSkill', 'requestedSkill'],
     });
+
+    if (user.role === 'user' && user.sub !== request.receiver.id) {
+      throw new ForbiddenException(
+        `Пользователь не может обновить заявку, если он не является её получателем`,
+      );
+    }
 
     const action = dto.action;
 

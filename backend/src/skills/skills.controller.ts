@@ -16,9 +16,9 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
-  ApiParam,
   ApiQuery,
   ApiResponse,
+  ApiParam,
   getSchemaPath,
 } from '@nestjs/swagger';
 import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';

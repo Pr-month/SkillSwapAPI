@@ -17,6 +17,7 @@ export class Category {
   id?: string;
 
   @Column({
+    unique: true,
     length: 100,
     nullable: false,
   })
