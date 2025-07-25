@@ -5,7 +5,6 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   Req,
   UseGuards,
   Query,
@@ -41,7 +40,7 @@ export class RequestsController {
     type: Request,
   })
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Отправление запроса' })
+  @ApiOperation({ summary: 'Отправление заявки' })
   @UseGuards(AccessTokenGuard)
   @Post()
   create(@Req() req: AuthRequest, @Body() createRequestDto: CreateRequestDto) {
@@ -51,7 +50,7 @@ export class RequestsController {
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Get('/incoming')
-  @ApiOperation({ summary: 'Получение всех запросов' })
+  @ApiOperation({ summary: 'Получение входящей заявки(только актуальные)' })
   @ApiResponse({
     status: 200,
     description: 'Список всех запросов',
@@ -64,7 +63,7 @@ export class RequestsController {
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Get('/outgoing')
-  @ApiOperation({ summary: 'Получение всех запросов' })
+  @ApiOperation({ summary: 'Получение исходящие заявки(только актуальные)' })
   @ApiResponse({
     status: 200,
     description: 'Список всех запросов',
@@ -76,23 +75,25 @@ export class RequestsController {
 
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
-  @Get(':id')
-  findOne(@Req() req: AuthRequest, @Param('id') id: string) {
-    return this.requestsService.findOne(req.user.sub, id, req.user.role);
-  }
-
-  @ApiBearerAuth('access-token')
-  @UseGuards(AccessTokenGuard)
-  @Patch(':id')
+  @Patch(':id/read')
+  @ApiOperation({ summary: 'Возможность прочитать заявку' })
   read(@Param('id') id: string, @Body() updateDto: UpdateRequestDto) {
     return this.requestsService.update(id, updateDto);
   }
 
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
-  @Delete(':id')
+  @Patch(':id/accept')
+  @ApiOperation({ summary: 'Возможность принять заявку' })
+  rad(@Param('id') id: string, @Body() updateDto: UpdateRequestDto) {
+    return this.requestsService.update(id, updateDto);
+  }
+
+  @ApiBearerAuth('access-token')
+  @UseGuards(AccessTokenGuard)
+  @Patch(':id/reject')
   @ApiOperation({
-    summary: 'Удаление заявки',
+    summary: 'Отклонение заявки',
     description:
       'Пользователь может удалить только свою исходящую заявку, в противном случае вернётся ошибка 403. Админ может удалить любую заявку.',
   })
