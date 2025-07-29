@@ -5,6 +5,7 @@ import { Socket } from 'socket.io';
 import { WsException } from '@nestjs/websockets';
 import { NotificationType } from './ws-jwt/types';
 import { logger } from 'src/logger/mainLogger';
+import { JwtPayload } from 'src/auth/types';
 
 jest.mock('src/logger/mainLogger', () => ({
   logger: {
@@ -14,9 +15,20 @@ jest.mock('src/logger/mainLogger', () => ({
   },
 }));
 
+type SocketUserData = {
+  user: JwtPayload;
+};
+
+type TypedSocket = Socket<
+  Record<string, unknown>,
+  Record<string, unknown>,
+  Record<string, unknown>,
+  SocketUserData
+>;
+
 type MockSocket = {
   id: string;
-  data: { user?: any };
+  data: SocketUserData;
   join: jest.Mock<void, [string]>;
   disconnect: jest.Mock<void, [boolean?]>;
 };
@@ -31,19 +43,20 @@ type MockServer = {
 
 describe('NotificationsGateway', () => {
   let gateway: NotificationsGateway;
-  let jwtGuard: JwtWsGuard;
 
   const mockServer: MockServer = {
-    to: jest.fn().mockReturnThis(),
-    emit: jest.fn(),
+    to: jest.fn<MockServer, [string]>().mockReturnThis(),
+    emit: jest.fn<void, [string, any]>(),
     sockets: {
       sockets: new Map<string, Socket>(),
     },
   };
 
-  const mockJwtGuard = {
-    verifyToken: jest.fn(),
-  };
+  const mockVerifyToken = jest.fn<boolean, [TypedSocket]>();
+
+  const mockJwtGuard: JwtWsGuard = {
+    verifyToken: mockVerifyToken,
+  } as unknown as JwtWsGuard;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -57,9 +70,8 @@ describe('NotificationsGateway', () => {
     }).compile();
 
     gateway = module.get<NotificationsGateway>(NotificationsGateway);
-    jwtGuard = module.get<JwtWsGuard>(JwtWsGuard);
 
-    (gateway as any).server = mockServer;
+    (gateway as unknown as { server: MockServer }).server = mockServer;
   });
 
   afterEach(() => {
@@ -71,38 +83,49 @@ describe('NotificationsGateway', () => {
   });
 
   describe('handleConnection', () => {
-    it('должен вызывать verifyToken и join room при валидном пользователе', async () => {
+    it('вызывает verifyToken и join room при валидном пользователе', async () => {
       const mockClient: MockSocket = {
         id: 'socket123',
-        data: { user: { sub: 'user123' } },
-        join: jest.fn(),
-        disconnect: jest.fn(),
+        data: {
+          user: {
+            sub: 'user123',
+            email: 'test@test.com',
+            role: 'user',
+          },
+        },
+        disconnect: jest.fn<void, [boolean?]>(),
+        join: jest.fn<void, [string]>(),
       };
 
-      mockJwtGuard.verifyToken.mockImplementation((client) => {
-        client.data.user = { sub: 'user123' };
-        return true;
-      });
+      mockVerifyToken.mockImplementation(() => true);
 
-      await gateway.handleConnection(mockClient as unknown as Socket);
+      await gateway.handleConnection(mockClient as unknown as TypedSocket);
 
-      expect(jwtGuard.verifyToken).toHaveBeenCalledWith(mockClient);
+      expect(mockVerifyToken).toHaveBeenCalledWith(
+        mockClient as unknown as TypedSocket,
+      );
       expect(mockClient.join).toHaveBeenCalledWith('user123');
     });
 
-    it('должен отключать клиента при ошибке verifyToken', async () => {
+    it('отключает клиента при ошибке verifyToken', async () => {
       const mockClient: MockSocket = {
         id: 'socket123',
-        data: {},
-        join: jest.fn(),
-        disconnect: jest.fn(),
+        data: {
+          user: {
+            sub: 'user456',
+            email: 't@t.t',
+            role: 'user',
+          },
+        },
+        disconnect: jest.fn<void, [boolean?]>(),
+        join: jest.fn<void, [string]>(),
       };
 
-      mockJwtGuard.verifyToken.mockImplementation(() => {
+      mockVerifyToken.mockImplementation(() => {
         throw new WsException('Invalid token');
       });
 
-      await gateway.handleConnection(mockClient as unknown as Socket);
+      await gateway.handleConnection(mockClient as unknown as TypedSocket);
 
       expect(mockClient.disconnect).toHaveBeenCalledWith(true);
     });
@@ -112,12 +135,18 @@ describe('NotificationsGateway', () => {
     it('логирует отключение пользователя', () => {
       const mockClient: MockSocket = {
         id: 'socket123',
-        data: { user: { sub: 'user456' } },
-        join: jest.fn(),
-        disconnect: jest.fn(),
+        data: {
+          user: {
+            sub: 'user456',
+            email: 't@t.t',
+            role: 'user',
+          },
+        },
+        disconnect: jest.fn<void, [boolean?]>(),
+        join: jest.fn<void, [string]>(),
       };
 
-      gateway.handleDisconnect(mockClient as unknown as Socket);
+      gateway.handleDisconnect(mockClient as unknown as TypedSocket);
 
       expect(logger.info).toHaveBeenCalledWith(
         `[WS] Клиент socket123(id socket) отключился. Идентификатор пользователя: user456`,
@@ -126,7 +155,7 @@ describe('NotificationsGateway', () => {
   });
 
   describe('notifyUser', () => {
-    it('вызывает this.server.to().emit с корректными параметрами', () => {
+    it('вызывает server.to().emit с правильными параметрами', () => {
       const payload = {
         type: NotificationType.NEW_REQUEST,
         skillName: 'JavaScript',
