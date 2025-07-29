@@ -30,7 +30,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "dotenv -e .env.test.local npm run seed:test && dotenv -e .env.test.local -- jest --config ./test/jest-e2e.json --detectOpenHandles",
-    "test:e2es": "dotenv -e .env.test.local npm run seed:test && dotenv -e .env.test.local -- jest --config ./test/jest-e2e.json notifications.e2e-spec.ts --detectOpenHandles"
+    "test:e2es": "dotenv -e .env.test.local npm run seed:test && dotenv -e .env.test.local -- jest --config ./test/jest-e2e.json notifications.e2e-spec.ts --detectOpenHandles",
+    "test:e2eskill": "dotenv -e .env.test.local npm run seed:test && dotenv -e .env.test.local -- jest --config ./test/jest-e2e.json skills.e2e-spec.ts --detectOpenHandles"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

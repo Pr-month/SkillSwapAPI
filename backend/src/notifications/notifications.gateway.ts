@@ -60,6 +60,7 @@ export class NotificationsGateway
           `[WS] Неизвестная ошибка во время подключения для клиента ${client.id}: ${JSON.stringify(error)}`,
         );
       }
+
       client.disconnect(true);
     }
   }

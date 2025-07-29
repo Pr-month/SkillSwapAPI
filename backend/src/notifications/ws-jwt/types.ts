@@ -16,7 +16,7 @@ export enum NotificationType {
 
 export class CreateNotificationDto {
   @IsNotEmpty()
-  recipient: string;
+  recipientId: string;
 
   @IsNotEmpty()
   type: NotificationType;
@@ -26,5 +26,11 @@ export class CreateNotificationDto {
   skillName: string;
 
   @IsNotEmpty()
+  sender: string;
+}
+
+export class payloadType {
+  type: NotificationType;
+  skillName: string;
   sender: string;
 }
