@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
@@ -28,8 +29,10 @@ import {
 import { Request } from './entities/request.entity';
 import { RequestStatus, RequestType } from './enums';
 import { FindOneRequestDto } from './dto/find-one-requst.dto';
+import { UserPasswordFilter } from 'src/common/userPassword.filter';
 
 @Controller('requests')
+@UseInterceptors(UserPasswordFilter)
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
   @ApiBearerAuth('access-token')
@@ -49,6 +52,7 @@ export class RequestsController {
     return this.requestsService.create(req.user.sub, createRequestDto);
   }
 
+  @ApiBearerAuth('access-token')
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Get()
@@ -95,6 +99,7 @@ export class RequestsController {
     return this.requestsService.findOne(req.user.sub, id, req.user.role);
   }
 
+  @ApiBearerAuth('access-token')
   @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   @Patch(':id')
