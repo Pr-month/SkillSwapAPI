@@ -13,6 +13,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
 import { logger } from '../logger/mainLogger';
+import { FindSkillsQueryDto } from './dto/find-skill.dto';
 
 @Injectable()
 export class SkillsService {
@@ -33,7 +34,7 @@ export class SkillsService {
     };
   }
 
-  async find(query: { page?: string; limit?: string; search?: string }) {
+  async find(query: FindSkillsQueryDto) {
     const page = Math.max(parseInt(query.page ?? '1'), 1);
     const limit = Math.min(Math.max(parseInt(query.limit ?? '20'), 1), 100);
     const search = (query.search || '').trim().toLowerCase();

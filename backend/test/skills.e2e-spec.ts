@@ -281,7 +281,7 @@ describe('SkillsController (e2e)', () => {
     expect(body.message.message).toEqual('Некорректный UUID навыка');
   });
 
-  it('/DELETE skills/:id - пользователь пытыется удалить чужой навык (403)', async () => {
+  it('/DELETE skills/:id - пользователь пытfается удалить чужой навык (403)', async () => {
     const res = await request(server)
       .delete(`/skills/${skillIdOtherUser}`)
       .auth(accessToken, { type: 'bearer' })

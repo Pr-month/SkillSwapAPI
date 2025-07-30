@@ -1,30 +1,30 @@
 import {
-  Body,
   Controller,
-  Delete,
-  Get,
-  HttpCode,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Req,
-  UseGuards,
   UseInterceptors,
+  Get,
+  Query,
+  UseGuards,
+  Post,
+  Req,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
-  ApiBody,
   ApiOperation,
-  ApiParam,
   ApiQuery,
   ApiResponse,
   getSchemaPath,
+  ApiBearerAuth,
+  ApiBody,
+  ApiParam,
 } from '@nestjs/swagger';
 import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
 import { AuthRequest } from 'src/auth/types';
+import { UserPasswordFilter } from 'src/common/userPassword.filter';
 import { UsersService } from 'src/users/users.service';
-import { UserPasswordFilter } from '../common/userPassword.filter';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { FindSkillsQueryDto } from './dto/find-skill.dto';
 import {
@@ -36,6 +36,7 @@ import { SkillsService } from './skills.service';
 
 @Controller('skills')
 @UseInterceptors(UserPasswordFilter)
+@UseInterceptors(UserPasswordFilter)
 export class SkillsController {
   constructor(
     private readonly skillsService: SkillsService,
@@ -43,6 +44,28 @@ export class SkillsController {
   ) {}
 
   @Get()
+  @ApiOperation({ summary: 'Получение навыков' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Номер страницы для пагинации',
+    example: 1,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Количество навыков на странице',
+    example: 20,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Поиск по названию навыка',
+    example: 'Читать',
+    type: String,
+  })
   @ApiOperation({ summary: 'Получение навыков' })
   @ApiQuery({
     name: 'page',
@@ -119,6 +142,11 @@ export class SkillsController {
     description: 'ID навыка',
     example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
   })
+  @ApiParam({
+    name: 'id',
+    description: 'ID навыка',
+    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
+  })
   @ApiBody({ type: UpdateSkillDto })
   @ApiResponse({
     status: 200,
@@ -139,6 +167,11 @@ export class SkillsController {
   @ApiOperation({
     summary: 'Удаление навыка авторизованного пользователя',
     description: 'Поиск по ID навыка',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID навыка',
+    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
   })
   @ApiParam({
     name: 'id',
@@ -179,6 +212,20 @@ export class SkillsController {
       },
     },
   })
+  @ApiParam({
+    name: 'id',
+    description: 'ID навыка',
+    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Навык добавлен в избранное',
+    schema: {
+      example: {
+        message: 'Навык добавлен в избранное',
+      },
+    },
+  })
   async addFavorite(@Req() req: AuthRequest, @Param('id') skillId: string) {
     return this.usersService.addFavoriteSkill(req.user.sub, skillId);
   }
@@ -187,6 +234,21 @@ export class SkillsController {
   @UseGuards(AccessTokenGuard)
   @Delete('favorite/:id')
   @HttpCode(200)
+  @ApiOperation({ summary: 'Удалить навык из избранного' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID навыка',
+    example: '26ef3ca3-3bef-409a-85ec-a14e31f5870c',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Навык удалён из избранного',
+    schema: {
+      example: {
+        message: 'Навык удалён из избранного',
+      },
+    },
+  })
   @ApiOperation({ summary: 'Удалить навык из избранного' })
   @ApiParam({
     name: 'id',
